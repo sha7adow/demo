@@ -1,8 +1,117 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿@model DashboardViewModel
+@{ ViewData["Title"] = "仪表盘"; }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<h3 class="mb-3">仪表盘</h3>
+
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="card text-bg-primary"><div class="card-body">
+            <div class="text-uppercase small">商品数</div>
+            <div class="display-6">@Model.ProductCount</div>
+            <a class="text-white small" asp-controller="Products" asp-action="Index">前往管理 →</a>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-info"><div class="card-body">
+            <div class="text-uppercase small">供应商 / 客户</div>
+            <div class="display-6">@Model.SupplierCount / @Model.CustomerCount</div>
+            <a class="text-white small" asp-controller="Suppliers" asp-action="Index">供应商</a> ·
+            <a class="text-white small" asp-controller="Customers" asp-action="Index">客户</a>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-warning"><div class="card-body">
+            <div class="text-uppercase small">库存告警</div>
+            <div class="display-6">@Model.LowStockCount</div>
+            <a class="text-dark small" asp-controller="Inventory" asp-action="Index" asp-route-onlyWarning="true">查看告警 →</a>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-success"><div class="card-body">
+            <div class="text-uppercase small">库存总值（采购价）</div>
+            <div class="display-6">¥ @Model.StockValue.ToString("N2")</div>
+            <a class="text-white small" asp-controller="Inventory" asp-action="Index">库存清单 →</a>
+        </div></div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card"><div class="card-body">
+            <h5 class="card-title">今日采购入库</h5>
+            <div class="d-flex justify-content-between">
+                <div>单数：<strong>@Model.TodayPurchaseCount</strong></div>
+                <div>金额：<strong>¥ @Model.TodayPurchaseAmount.ToString("N2")</strong></div>
+                <div>草稿待处理：<strong class="text-warning">@Model.DraftPurchaseCount</strong></div>
+            </div>
+            <a class="btn btn-sm btn-outline-primary mt-3" asp-controller="Purchases" asp-action="Create">+ 新建采购单</a>
+            <a class="btn btn-sm btn-outline-secondary mt-3" asp-controller="Purchases" asp-action="Index">查看采购列表</a>
+        </div></div>
+    </div>
+    <div class="col-md-6">
+        <div class="card"><div class="card-body">
+            <h5 class="card-title">今日销售出库</h5>
+            <div class="d-flex justify-content-between">
+                <div>单数：<strong>@Model.TodaySaleCount</strong></div>
+                <div>金额：<strong>¥ @Model.TodaySaleAmount.ToString("N2")</strong></div>
+                <div>草稿待处理：<strong class="text-warning">@Model.DraftSaleCount</strong></div>
+            </div>
+            <a class="btn btn-sm btn-outline-primary mt-3" asp-controller="Sales" asp-action="Create">+ 新建销售单</a>
+            <a class="btn btn-sm btn-outline-secondary mt-3" asp-controller="Sales" asp-action="Index">查看销售列表</a>
+        </div></div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card"><div class="card-body">
+            <h5 class="card-title">库存告警 Top 8</h5>
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>编码</th><th>名称</th><th class="text-end">库存</th><th class="text-end">安全库存</th></tr></thead>
+                <tbody>
+                @foreach (var p in Model.LowStockTop)
+                {
+                    <tr class="@(p.Stock == 0 ? "table-danger" : "table-warning")">
+                        <td>@p.Code</td><td>@p.Name</td>
+                        <td class="text-end">@p.Stock</td>
+                        <td class="text-end">@p.SafetyStock</td>
+                    </tr>
+                }
+                @if (Model.LowStockTop.Count == 0)
+                {
+                    <tr><td colspan="4" class="text-center text-muted py-3">无告警，库存安全 ✓</td></tr>
+                }
+                </tbody>
+            </table>
+        </div></div>
+    </div>
+    <div class="col-md-6">
+        <div class="card"><div class="card-body">
+            <h5 class="card-title">最近库存流水</h5>
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>时间</th><th>商品</th><th>类型</th><th class="text-end">变化</th></tr></thead>
+                <tbody>
+                @foreach (var t in Model.RecentTransactions)
+                {
+                    var cls = t.Quantity > 0 ? "text-success" : "text-danger";
+                    var sign = t.Quantity > 0 ? "+" : "";
+                    string typeText = t.ChangeType switch
+                    {
+                        StockChangeType.Purchase => "采购入库",
+                        StockChangeType.Sale => "销售出库",
+                        StockChangeType.Adjust => "手工调整",
+                        _ => t.ChangeType.ToString()
+                    };
+                    <tr>
+                        <td>@t.CreatedAt.ToString("MM-dd HH:mm")</td>
+                        <td>@t.Product?.Name</td>
+                        <td>@typeText</td>
+                        <td class="text-end @cls">@sign@t.Quantity</td>
+                    </tr>
+                }
+                @if (Model.RecentTransactions.Count == 0)
+                {
+                    <tr><td colspan="4" class="text-center text-muted py-3">暂无流水</td></tr>
+                }
+                </tbody>
+            </table>
+            <a class="btn btn-sm btn-outline-secondary mt-2" asp-controller="Inventory" asp-action="Transactions">查看全部流水 →</a>
+        </div></div>
+    </div>
 </div>

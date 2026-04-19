@@ -1,0 +1,38 @@
+@model IEnumerable<SaleOrder>
+@{ ViewData["Title"] = "销售单"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>销售单</h3>
+    <a class="btn btn-primary" asp-action="Create">+ 新建销售单</a>
+</div>
+
+<table class="table table-hover table-sm align-middle bg-white">
+    <thead class="table-light">
+        <tr>
+            <th>单号</th><th>客户</th><th>下单日期</th><th>状态</th>
+            <th class="text-end">金额</th><th>备注</th><th style="width:140px">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var o in Model)
+    {
+        var badge = o.Status switch
+        {
+            OrderStatus.Draft => "bg-secondary",
+            OrderStatus.Confirmed => "bg-success",
+            OrderStatus.Cancelled => "bg-dark",
+            _ => "bg-light"
+        };
+        <tr>
+            <td>@o.OrderNo</td>
+            <td>@o.Customer?.Name</td>
+            <td>@o.OrderDate.ToString("yyyy-MM-dd")</td>
+            <td><span class="badge @badge">@o.Status</span></td>
+            <td class="text-end">@o.TotalAmount.ToString("0.00")</td>
+            <td>@o.Remark</td>
+            <td><a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@o.Id">详情</a></td>
+        </tr>
+    }
+    @if (!Model.Any()) { <tr><td colspan="7" class="text-center text-muted py-4">暂无数据</td></tr> }
+    </tbody>
+</table>

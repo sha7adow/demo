@@ -1,0 +1,55 @@
+@model IEnumerable<Product>
+@{ ViewData["Title"] = "库存"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>库存清单</h3>
+    <div>
+        <a class="btn btn-outline-primary" asp-action="Adjust">库存调整</a>
+        <a class="btn btn-outline-secondary" asp-action="Transactions">查看流水</a>
+    </div>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control" placeholder="编码 / 名称" />
+    </div>
+    <div class="col-auto form-check pt-2 ms-2">
+        <input class="form-check-input" type="checkbox" name="onlyWarning" value="true" id="cbOnlyWarning" @(ViewBag.OnlyWarning == true ? "checked" : "") />
+        <label class="form-check-label" for="cbOnlyWarning">仅看库存告警</label>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary">筛选</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">重置</a>
+    </div>
+</form>
+
+<table class="table table-hover table-sm align-middle bg-white">
+    <thead class="table-light">
+        <tr>
+            <th>编码</th><th>名称</th><th>单位</th>
+            <th class="text-end">当前库存</th><th class="text-end">安全库存</th>
+            <th class="text-end">库存金额(按采购价)</th>
+            <th>状态</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var p in Model)
+    {
+        var warn = p.Stock <= p.SafetyStock;
+        <tr class="@(warn ? "table-warning" : "")">
+            <td>@p.Code</td>
+            <td>@p.Name</td>
+            <td>@p.Unit</td>
+            <td class="text-end">@p.Stock</td>
+            <td class="text-end">@p.SafetyStock</td>
+            <td class="text-end">@((p.Stock * p.PurchasePrice).ToString("0.00"))</td>
+            <td>
+                @if (p.Stock == 0) { <span class="badge bg-danger">缺货</span> }
+                else if (warn) { <span class="badge bg-warning text-dark">告警</span> }
+                else { <span class="badge bg-success">充足</span> }
+            </td>
+        </tr>
+    }
+    @if (!Model.Any()) { <tr><td colspan="7" class="text-center text-muted py-4">暂无数据</td></tr> }
+    </tbody>
+</table>

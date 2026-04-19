@@ -1,0 +1,58 @@
+@model IEnumerable<StockTransaction>
+@{
+    ViewData["Title"] = "库存流水";
+    var products = ViewBag.Products as List<Product> ?? new();
+    int? selected = ViewBag.ProductId as int?;
+}
+
+<h3>库存流水（最近 500 条）</h3>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select name="productId" class="form-select">
+            <option value="">全部商品</option>
+            @foreach (var p in products)
+            {
+                <option value="@p.Id" selected="@(selected == p.Id)">@p.Code @p.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary">筛选</button>
+        <a class="btn btn-outline-secondary" asp-action="Transactions">重置</a>
+    </div>
+</form>
+
+<table class="table table-sm table-hover bg-white align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>时间</th><th>商品</th><th>类型</th>
+            <th class="text-end">数量变化</th><th class="text-end">变动后库存</th>
+            <th>关联单号</th><th>备注</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var t in Model)
+    {
+        var cls = t.Quantity > 0 ? "text-success" : "text-danger";
+        var sign = t.Quantity > 0 ? "+" : "";
+        string typeText = t.ChangeType switch
+        {
+            StockChangeType.Purchase => "采购入库",
+            StockChangeType.Sale => "销售出库",
+            StockChangeType.Adjust => "手工调整",
+            _ => t.ChangeType.ToString()
+        };
+        <tr>
+            <td>@t.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+            <td>@t.Product?.Code @t.Product?.Name</td>
+            <td>@typeText</td>
+            <td class="text-end @cls">@sign@t.Quantity</td>
+            <td class="text-end">@t.StockAfter</td>
+            <td>@t.RefOrderNo</td>
+            <td>@t.Remark</td>
+        </tr>
+    }
+    @if (!Model.Any()) { <tr><td colspan="7" class="text-center text-muted py-4">暂无数据</td></tr> }
+    </tbody>
+</table>
