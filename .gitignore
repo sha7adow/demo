@@ -1,0 +1,12 @@
+.vs/
+**/bin/
+**/obj/
+
+# SQLite 临时文件
+*.db-wal
+*.db-shm
+
+# 用户/机器相关文件
+*.user
+*.suo
+*.cache
