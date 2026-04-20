@@ -1,0 +1,61 @@
+@using Microsoft.AspNetCore.WebUtilities
+@* 通用分页条。
+   用法：
+     @{ ViewBag.Page = model.PageIndex; ViewBag.PageSize = model.PageSize; ViewBag.TotalPages = model.TotalPages; ViewBag.TotalCount = model.TotalCount; }
+     @await Html.PartialAsync("_Pager")
+   搜索条件通过 ViewContext.HttpContext.Request.Query 自动继承。
+*@
+@{
+    int curPage = (int)(ViewBag.Page ?? 1);
+    int pageSize = (int)(ViewBag.PageSize ?? 20);
+    int totalPages = (int)(ViewBag.TotalPages ?? 0);
+    int totalCount = (int)(ViewBag.TotalCount ?? 0);
+
+    var req = ViewContext.HttpContext.Request;
+    var baseQuery = new Dictionary<string, string?>();
+    foreach (var kv in req.Query)
+    {
+        if (string.Equals(kv.Key, "page", StringComparison.OrdinalIgnoreCase)) continue;
+        baseQuery[kv.Key] = kv.Value.ToString();
+    }
+
+    string UrlFor(int p)
+    {
+        var qs = new Dictionary<string, string?>(baseQuery) { ["page"] = p.ToString() };
+        return QueryHelpers.AddQueryString(req.Path, qs);
+    }
+
+    int start = Math.Max(1, curPage - 3);
+    int end = Math.Min(totalPages, curPage + 3);
+}
+
+@if (totalPages > 0)
+{
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
+        <div class="text-muted small">
+            共 <strong>@totalCount</strong> 条，第 <strong>@curPage</strong> / <strong>@totalPages</strong> 页
+        </div>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(curPage <= 1 ? "disabled" : "")">
+                    <a class="page-link" href="@UrlFor(1)">«</a>
+                </li>
+                <li class="page-item @(curPage <= 1 ? "disabled" : "")">
+                    <a class="page-link" href="@UrlFor(Math.Max(1, curPage - 1))">‹</a>
+                </li>
+                @for (int p = start; p <= end; p++)
+                {
+                    <li class="page-item @(p == curPage ? "active" : "")">
+                        <a class="page-link" href="@UrlFor(p)">@p</a>
+                    </li>
+                }
+                <li class="page-item @(curPage >= totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@UrlFor(Math.Min(totalPages, curPage + 1))">›</a>
+                </li>
+                <li class="page-item @(curPage >= totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@UrlFor(totalPages)">»</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+}

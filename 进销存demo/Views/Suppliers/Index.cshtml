@@ -1,10 +1,23 @@
-@model IEnumerable<Supplier>
-@{ ViewData["Title"] = "供应商"; }
+@model IReadOnlyList<Supplier>
+@{
+    ViewData["Title"] = "供应商";
+    var q = ViewBag.Query as SupplierQuery ?? new SupplierQuery();
+}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>供应商</h3>
     <a class="btn btn-primary" asp-action="Create">+ 新增供应商</a>
 </div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input type="text" name="keyword" value="@q.Keyword" class="form-control" placeholder="名称 / 联系人 / 电话" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary">搜索</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">重置</a>
+    </div>
+</form>
 
 <table class="table table-hover table-sm align-middle bg-white">
     <thead class="table-light">
@@ -27,3 +40,5 @@
     @if (!Model.Any()) { <tr><td colspan="6" class="text-center text-muted py-4">暂无数据</td></tr> }
     </tbody>
 </table>
+
+@await Html.PartialAsync("_Pager")

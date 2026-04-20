@@ -1,5 +1,16 @@
-﻿@{
+﻿@using System.Security.Claims
+@using 进销存demo.Models.Identity
+@{
     string Active(string c) => (ViewContext.RouteData.Values["controller"] as string) == c ? "active fw-bold" : "";
+
+    bool IsAuthed = User.Identity?.IsAuthenticated == true;
+    string UserName = User.Identity?.Name ?? "";
+    string UserRolesLabel = string.Join(" / ",
+        User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => Roles.Display(c.Value)));
+    bool IsAdmin = User.IsInRole(Roles.Admin);
+    bool IsPurchaser = User.IsInRole(Roles.Purchaser);
+    bool IsSales = User.IsInRole(Roles.Salesperson);
+    bool IsWarehouse = User.IsInRole(Roles.Warehouse);
 }
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -21,14 +32,51 @@
                 </button>
                 <div class="navbar-collapse collapse d-md-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item"><a class="nav-link @Active("Home")" asp-controller="Home" asp-action="Index">仪表盘</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("Products")" asp-controller="Products" asp-action="Index">商品</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("Suppliers")" asp-controller="Suppliers" asp-action="Index">供应商</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("Customers")" asp-controller="Customers" asp-action="Index">客户</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("Purchases")" asp-controller="Purchases" asp-action="Index">采购</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("Sales")" asp-controller="Sales" asp-action="Index">销售</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("Inventory")" asp-controller="Inventory" asp-action="Index">库存</a></li>
-                        <li class="nav-item"><a class="nav-link" asp-controller="Inventory" asp-action="Transactions">流水</a></li>
+                        @if (IsAuthed)
+                        {
+                            <li class="nav-item"><a class="nav-link @Active("Home")" asp-controller="Home" asp-action="Index">仪表盘</a></li>
+                            <li class="nav-item"><a class="nav-link @Active("Products")" asp-controller="Products" asp-action="Index">商品</a></li>
+                            @if (IsAdmin || IsPurchaser)
+                            {
+                                <li class="nav-item"><a class="nav-link @Active("Suppliers")" asp-controller="Suppliers" asp-action="Index">供应商</a></li>
+                                <li class="nav-item"><a class="nav-link @Active("Purchases")" asp-controller="Purchases" asp-action="Index">采购</a></li>
+                            }
+                            @if (IsAdmin || IsSales)
+                            {
+                                <li class="nav-item"><a class="nav-link @Active("Customers")" asp-controller="Customers" asp-action="Index">客户</a></li>
+                                <li class="nav-item"><a class="nav-link @Active("Sales")" asp-controller="Sales" asp-action="Index">销售</a></li>
+                            }
+                            <li class="nav-item"><a class="nav-link @Active("Inventory")" asp-controller="Inventory" asp-action="Index">库存</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Inventory" asp-action="Transactions">流水</a></li>
+                            <li class="nav-item"><a class="nav-link @Active("Stocktakes")" asp-controller="Stocktakes" asp-action="Index">盘点</a></li>
+                        }
+                    </ul>
+                    <ul class="navbar-nav">
+                        @if (IsAuthed)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    👤 @UserName
+                                    @if (!string.IsNullOrEmpty(UserRolesLabel))
+                                    {
+                                        <span class="badge bg-light text-dark ms-1">@UserRolesLabel</span>
+                                    }
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">修改密码</a></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                            <button type="submit" class="dropdown-item">注销</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Login">登录</a></li>
+                        }
                     </ul>
                 </div>
             </div>

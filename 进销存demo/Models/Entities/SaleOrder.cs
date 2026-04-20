@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace 进销存demo.Models.Entities
 {
-    public class SaleOrder
+    public class SaleOrder : IAuditable, IAuditLogged
     {
         public int Id { get; set; }
 
@@ -27,6 +27,15 @@ namespace 进销存demo.Models.Entities
 
         [Display(Name = "创建时间")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        [Display(Name = "更新时间")]
+        public DateTime? UpdatedAt { get; set; }
+
+        [Display(Name = "确认时间")]
+        public DateTime? ConfirmedAt { get; set; }
+
+        [Display(Name = "退货时间")]
+        public DateTime? ReturnedAt { get; set; }
 
         public List<SaleOrderItem> Items { get; set; } = new();
     }

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using 进销存demo.Data;
@@ -7,6 +8,7 @@ using 进销存demo.Models.Entities;
 
 namespace 进销存demo.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly AppDbContext _db;
@@ -61,10 +63,22 @@ namespace 进销存demo.Controllers
             return View(vm);
         }
 
+        [AllowAnonymous]
         public IActionResult Privacy() => View();
 
+        [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error() =>
             View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+
+        [AllowAnonymous]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult StatusCode(int? code)
+        {
+            if (code == 403)
+                return RedirectToAction("AccessDenied", "Account");
+            ViewBag.Code = code ?? 0;
+            return View("StatusCode");
+        }
     }
 }

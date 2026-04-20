@@ -7,12 +7,21 @@
         OrderStatus.Draft => "bg-secondary",
         OrderStatus.Confirmed => "bg-success",
         OrderStatus.Cancelled => "bg-dark",
+        OrderStatus.Returned => "bg-warning text-dark",
         _ => "bg-light"
+    };
+    string statusText = Model.Status switch
+    {
+        OrderStatus.Draft => "草稿",
+        OrderStatus.Confirmed => "已出库",
+        OrderStatus.Cancelled => "已作废",
+        OrderStatus.Returned => "已退货",
+        _ => Model.Status.ToString()
     };
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>销售单 @Model.OrderNo <span class="badge @badge ms-2">@Model.Status</span></h3>
+    <h3>销售单 @Model.OrderNo <span class="badge @badge ms-2">@statusText</span></h3>
     <div>
         @if (Model.Status == OrderStatus.Draft)
         {
@@ -29,6 +38,10 @@
                 <button class="btn btn-outline-danger">删除</button>
             </form>
         }
+        @if (Model.Status == OrderStatus.Confirmed)
+        {
+            <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#returnModal">销售退货</button>
+        }
         <a class="btn btn-secondary" asp-action="Index">返回</a>
     </div>
 </div>
@@ -39,6 +52,14 @@
         <div class="col-md-3"><strong>下单日期：</strong>@Model.OrderDate.ToString("yyyy-MM-dd")</div>
         <div class="col-md-3"><strong>创建时间：</strong>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
         <div class="col-md-3"><strong>合计：</strong>¥ @Model.TotalAmount.ToString("0.00")</div>
+        @if (Model.ConfirmedAt.HasValue)
+        {
+            <div class="col-md-3 mt-2"><strong>确认时间：</strong>@Model.ConfirmedAt.Value.ToString("yyyy-MM-dd HH:mm")</div>
+        }
+        @if (Model.ReturnedAt.HasValue)
+        {
+            <div class="col-md-3 mt-2"><strong>退货时间：</strong>@Model.ReturnedAt.Value.ToString("yyyy-MM-dd HH:mm")</div>
+        }
         <div class="col-md-12 mt-2"><strong>备注：</strong>@Model.Remark</div>
     </div>
 </div>
@@ -62,3 +83,27 @@
         <tr><th colspan="3" class="text-end">合计</th><th class="text-end">@Model.TotalAmount.ToString("0.00")</th></tr>
     </tfoot>
 </table>
+
+@if (Model.Status == OrderStatus.Confirmed)
+{
+    <div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="post" asp-action="Return" asp-route-id="@Model.Id" class="modal-content">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">销售退货</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>将对此单全部明细反向入库，并写入退货流水。</p>
+                    <label class="form-label">退货原因 / 备注</label>
+                    <input type="text" name="remark" class="form-control" placeholder="可选" maxlength="200" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-warning">确认退货</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}

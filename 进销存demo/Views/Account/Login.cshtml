@@ -1,0 +1,46 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "登录";
+    Layout = "_LoginLayout";
+}
+<div class="card shadow-sm" style="width: 22rem;">
+    <div class="card-body">
+        <h4 class="card-title text-center mb-3">📦 进销存 Demo</h4>
+        <h6 class="text-muted text-center mb-4">请登录</h6>
+
+        <form asp-action="Login" method="post">
+            <input type="hidden" asp-for="ReturnUrl" />
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+            <div class="mb-3">
+                <label asp-for="UserName" class="form-label"></label>
+                <input asp-for="UserName" class="form-control" autocomplete="username" autofocus />
+                <span asp-validation-for="UserName" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label"></label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">登录</button>
+        </form>
+
+        <hr />
+        <div class="small text-muted">
+            <div>默认账户（密码都是 <code>Jxc@123456</code>）：</div>
+            <ul class="mb-0 ps-3">
+                <li><code>admin</code>（管理员）</li>
+                <li><code>purchaser</code>（采购员）</li>
+                <li><code>salesperson</code>（销售员）</li>
+                <li><code>warehouse</code>（库管）</li>
+            </ul>
+        </div>
+    </div>
+</div>

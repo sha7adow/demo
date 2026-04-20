@@ -1,0 +1,90 @@
+@model Stocktake
+@{
+    ViewData["Title"] = "盘点单详情";
+    var badge = Model.Status switch
+    {
+        StocktakeStatus.Draft => "bg-secondary",
+        StocktakeStatus.Confirmed => "bg-success",
+        StocktakeStatus.Cancelled => "bg-dark",
+        _ => "bg-light"
+    };
+    string statusText = Model.Status switch
+    {
+        StocktakeStatus.Draft => "草稿",
+        StocktakeStatus.Confirmed => "已确认",
+        StocktakeStatus.Cancelled => "已作废",
+        _ => Model.Status.ToString()
+    };
+    bool editable = Model.Status == StocktakeStatus.Draft;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>盘点单 @Model.OrderNo <span class="badge @badge ms-2">@statusText</span></h3>
+    <div>
+        @if (editable)
+        {
+            <form method="post" asp-action="Confirm" asp-route-id="@Model.Id" class="d-inline" onsubmit="return confirm('确认盘点？将按差异生成调整流水，库存即刻变更。')">
+                @Html.AntiForgeryToken()
+                <button class="btn btn-success">确认盘点</button>
+            </form>
+            <form method="post" asp-action="Cancel" asp-route-id="@Model.Id" class="d-inline" onsubmit="return confirm('确认作废？')">
+                @Html.AntiForgeryToken()
+                <button class="btn btn-warning">作废</button>
+            </form>
+        }
+        <a class="btn btn-secondary" asp-action="Index">返回</a>
+    </div>
+</div>
+
+<div class="card card-body mb-3">
+    <div class="row">
+        <div class="col-md-3"><strong>盘点日期：</strong>@Model.OrderDate.ToString("yyyy-MM-dd")</div>
+        <div class="col-md-3"><strong>创建时间：</strong>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+        @if (Model.ConfirmedAt.HasValue)
+        {
+            <div class="col-md-3"><strong>确认时间：</strong>@Model.ConfirmedAt.Value.ToString("yyyy-MM-dd HH:mm")</div>
+        }
+        <div class="col-md-12 mt-2"><strong>备注：</strong>@Model.Remark</div>
+    </div>
+</div>
+
+<form method="post" asp-action="Save" asp-route-id="@Model.Id">
+    @Html.AntiForgeryToken()
+    <table class="table table-sm bg-white align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>编码</th><th>名称</th>
+                <th class="text-end">系统数</th>
+                <th class="text-end" style="width:140px">实盘数</th>
+                <th class="text-end">差异</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model.Items)
+        {
+            var diffCls = item.Diff == 0 ? "" : (item.Diff > 0 ? "text-success" : "text-danger");
+            var diffSign = item.Diff > 0 ? "+" : "";
+            <tr>
+                <td>@item.Product?.Code <input type="hidden" name="productIds" value="@item.ProductId" /></td>
+                <td>@item.Product?.Name</td>
+                <td class="text-end">@item.SystemQty</td>
+                <td class="text-end">
+                    @if (editable)
+                    {
+                        <input name="actualQtys" type="number" min="0" value="@item.ActualQty" class="form-control form-control-sm text-end" />
+                    }
+                    else
+                    {
+                        @item.ActualQty
+                    }
+                </td>
+                <td class="text-end @diffCls">@diffSign@item.Diff</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (editable)
+    {
+        <button type="submit" class="btn btn-outline-primary">保存实盘数</button>
+    }
+</form>

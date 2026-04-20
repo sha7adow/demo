@@ -1,11 +1,11 @@
-@model IEnumerable<StockTransaction>
+@model IReadOnlyList<StockTransaction>
 @{
     ViewData["Title"] = "库存流水";
+    var q = ViewBag.Query as TransactionQuery ?? new TransactionQuery();
     var products = ViewBag.Products as List<Product> ?? new();
-    int? selected = ViewBag.ProductId as int?;
 }
 
-<h3>库存流水（最近 500 条）</h3>
+<h3>库存流水</h3>
 
 <form method="get" class="row g-2 mb-3">
     <div class="col-auto">
@@ -13,9 +13,35 @@
             <option value="">全部商品</option>
             @foreach (var p in products)
             {
-                <option value="@p.Id" selected="@(selected == p.Id)">@p.Code @p.Name</option>
+                <option value="@p.Id" selected="@(q.ProductId == p.Id)">@p.Code @p.Name</option>
             }
         </select>
+    </div>
+    <div class="col-auto">
+        <select name="changeType" class="form-select">
+            <option value="">全部类型</option>
+            @foreach (StockChangeType t in Enum.GetValues(typeof(StockChangeType)))
+            {
+                <option value="@((int)t)" selected="@(q.ChangeType == t)">
+                    @(t switch
+                        {
+                            StockChangeType.Purchase => "采购入库",
+                            StockChangeType.Sale => "销售出库",
+                            StockChangeType.Adjust => "手工调整",
+                            StockChangeType.PurchaseReturn => "采购退货",
+                            StockChangeType.SaleReturn => "销售退货",
+                            StockChangeType.Stocktake => "盘点调整",
+                            _ => t.ToString()
+                        })
+                </option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <input type="date" name="dateFrom" value="@(q.DateFrom?.ToString("yyyy-MM-dd"))" class="form-control" />
+    </div>
+    <div class="col-auto">
+        <input type="date" name="dateTo" value="@(q.DateTo?.ToString("yyyy-MM-dd"))" class="form-control" />
     </div>
     <div class="col-auto">
         <button class="btn btn-outline-primary">筛选</button>
@@ -41,6 +67,9 @@
             StockChangeType.Purchase => "采购入库",
             StockChangeType.Sale => "销售出库",
             StockChangeType.Adjust => "手工调整",
+            StockChangeType.PurchaseReturn => "采购退货",
+            StockChangeType.SaleReturn => "销售退货",
+            StockChangeType.Stocktake => "盘点调整",
             _ => t.ChangeType.ToString()
         };
         <tr>
@@ -56,3 +85,5 @@
     @if (!Model.Any()) { <tr><td colspan="7" class="text-center text-muted py-4">暂无数据</td></tr> }
     </tbody>
 </table>
+
+@await Html.PartialAsync("_Pager")

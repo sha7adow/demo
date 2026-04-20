@@ -1,5 +1,9 @@
-@model IEnumerable<Product>
-@{ ViewData["Title"] = "商品管理"; }
+@model IReadOnlyList<Product>
+@{
+    ViewData["Title"] = "商品管理";
+    var q = ViewBag.Query as ProductQuery ?? new ProductQuery();
+    var categories = ViewBag.Categories as List<ProductCategory> ?? new();
+}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>商品管理</h3>
@@ -8,7 +12,24 @@
 
 <form method="get" class="row g-2 mb-3">
     <div class="col-auto">
-        <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control" placeholder="编码 / 名称" />
+        <input type="text" name="keyword" value="@q.Keyword" class="form-control" placeholder="编码 / 名称 / 条码" />
+    </div>
+    <div class="col-auto">
+        <select name="categoryId" class="form-select">
+            <option value="">全部分类</option>
+            @foreach (var c in categories)
+            {
+                <option value="@c.Id" selected="@(q.CategoryId == c.Id)">@c.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto form-check pt-2 ms-2">
+        <input class="form-check-input" type="checkbox" name="onlyWarning" value="true" id="cbWarning" @(q.OnlyWarning == true ? "checked" : "") />
+        <label class="form-check-label" for="cbWarning">仅看告警</label>
+    </div>
+    <div class="col-auto form-check pt-2 ms-2">
+        <input class="form-check-input" type="checkbox" name="onlyActive" value="true" id="cbActive" @(q.OnlyActive == true ? "checked" : "") />
+        <label class="form-check-label" for="cbActive">仅启用</label>
     </div>
     <div class="col-auto">
         <button type="submit" class="btn btn-outline-primary">搜索</button>
@@ -19,27 +40,32 @@
 <table class="table table-hover table-sm align-middle bg-white">
     <thead class="table-light">
         <tr>
-            <th>编码</th><th>名称</th><th>单位</th>
+            <th>编码</th><th>名称</th><th>条码</th><th>分类</th><th>单位</th>
             <th class="text-end">采购价</th><th class="text-end">销售价</th>
             <th class="text-end">库存</th><th class="text-end">安全库存</th>
-            <th>备注</th><th style="width:160px">操作</th>
+            <th>状态</th><th style="width:160px">操作</th>
         </tr>
     </thead>
     <tbody>
     @foreach (var p in Model)
     {
-        <tr class="@(p.Stock <= p.SafetyStock ? "table-warning" : "")">
+        <tr class="@(p.Stock <= p.SafetyStock ? "table-warning" : "") @(!p.IsActive ? "text-muted" : "")">
             <td>@p.Code</td>
             <td>@p.Name</td>
+            <td><small class="text-muted">@p.Barcode</small></td>
+            <td>@p.Category?.Name</td>
             <td>@p.Unit</td>
             <td class="text-end">@p.PurchasePrice.ToString("0.00")</td>
             <td class="text-end">@p.SalePrice.ToString("0.00")</td>
             <td class="text-end">@p.Stock</td>
             <td class="text-end">@p.SafetyStock</td>
-            <td>@p.Remark</td>
+            <td>
+                @if (!p.IsActive) { <span class="badge bg-secondary">停用</span> }
+                else { <span class="badge bg-success">启用</span> }
+            </td>
             <td>
                 <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@p.Id">编辑</a>
-                <form method="post" asp-action="Delete" asp-route-id="@p.Id" class="d-inline" onsubmit="return confirm('确认删除？')">
+                <form method="post" asp-action="Delete" asp-route-id="@p.Id" class="d-inline" onsubmit="return confirm('确认删除？（将软删除，可从数据库恢复）')">
                     @Html.AntiForgeryToken()
                     <button class="btn btn-sm btn-outline-danger">删除</button>
                 </form>
@@ -48,7 +74,9 @@
     }
     @if (!Model.Any())
     {
-        <tr><td colspan="9" class="text-center text-muted py-4">暂无数据</td></tr>
+        <tr><td colspan="11" class="text-center text-muted py-4">暂无数据</td></tr>
     }
     </tbody>
 </table>
+
+@await Html.PartialAsync("_Pager")

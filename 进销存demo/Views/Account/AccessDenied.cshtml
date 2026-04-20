@@ -1,0 +1,26 @@
+@{
+    ViewData["Title"] = "无权访问";
+}
+<div class="container" style="max-width: 640px;">
+    <div class="card shadow-sm mt-5">
+        <div class="card-body text-center py-5">
+            <div style="font-size: 4rem; line-height: 1;">🚫</div>
+            <h3 class="mt-3 text-danger">无权访问</h3>
+            <p class="text-muted">
+                你当前登录的账号
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <code>@User.Identity.Name</code>
+                }
+                没有权限执行此操作。
+            </p>
+            <p class="text-muted small">如果你认为这是误操作，请联系管理员为你授权相应角色。</p>
+            <div class="mt-4">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary">返回首页</a>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-secondary">切换账号</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

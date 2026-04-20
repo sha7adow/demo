@@ -1,13 +1,16 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using 进销存demo.Models.Entities;
+using 进销存demo.Models.Identity;
 
 namespace 进销存demo.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<Product> Products => Set<Product>();
+        public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
         public DbSet<Supplier> Suppliers => Set<Supplier>();
         public DbSet<Customer> Customers => Set<Customer>();
         public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
@@ -15,14 +18,40 @@ namespace 进销存demo.Data
         public DbSet<SaleOrder> SaleOrders => Set<SaleOrder>();
         public DbSet<SaleOrderItem> SaleOrderItems => Set<SaleOrderItem>();
         public DbSet<StockTransaction> StockTransactions => Set<StockTransaction>();
+        public DbSet<SequenceNumber> SequenceNumbers => Set<SequenceNumber>();
+        public DbSet<Stocktake> Stocktakes => Set<Stocktake>();
+        public DbSet<StocktakeItem> StocktakeItems => Set<StocktakeItem>();
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
         protected override void OnModelCreating(ModelBuilder b)
         {
-            b.Entity<Product>().HasIndex(x => x.Code).IsUnique();
+            base.OnModelCreating(b); // Identity 的表结构
+
+            // ---------- 唯一索引（软删除后允许同名重用：加 Filter）----------
+            b.Entity<Product>()
+                .HasIndex(x => x.Code)
+                .IsUnique()
+                .HasFilter("\"IsDeleted\" = 0");
+
             b.Entity<PurchaseOrder>().HasIndex(x => x.OrderNo).IsUnique();
             b.Entity<SaleOrder>().HasIndex(x => x.OrderNo).IsUnique();
+            b.Entity<Stocktake>().HasIndex(x => x.OrderNo).IsUnique();
 
-            // SQLite 下保留两位小数即可，使用 TEXT 存储 decimal 由 EF 自动处理
+            b.Entity<SequenceNumber>()
+                .HasIndex(x => x.Scope)
+                .IsUnique();
+
+            b.Entity<StockTransaction>()
+                .HasIndex(x => x.RefOrderNo);
+            b.Entity<StockTransaction>()
+                .HasIndex(x => new { x.ProductId, x.Id });
+
+            b.Entity<AuditLog>()
+                .HasIndex(x => new { x.EntityType, x.EntityKey });
+            b.Entity<AuditLog>()
+                .HasIndex(x => x.CreatedAt);
+
+            // ---------- decimal 精度 ----------
             foreach (var prop in b.Model.GetEntityTypes()
                          .SelectMany(t => t.GetProperties())
                          .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))
@@ -31,6 +60,7 @@ namespace 进销存demo.Data
                 prop.SetScale(2);
             }
 
+            // ---------- 关系 ----------
             b.Entity<PurchaseOrderItem>()
                 .HasOne(x => x.PurchaseOrder)
                 .WithMany(o => o.Items)
@@ -42,44 +72,34 @@ namespace 进销存demo.Data
                 .WithMany(o => o.Items)
                 .HasForeignKey(x => x.SaleOrderId)
                 .OnDelete(DeleteBehavior.Cascade);
-        }
-    }
 
-    public static class DbInitializer
-    {
-        public static void Seed(AppDbContext db)
-        {
-            db.Database.EnsureCreated();
+            b.Entity<StocktakeItem>()
+                .HasOne(x => x.Stocktake)
+                .WithMany(s => s.Items)
+                .HasForeignKey(x => x.StocktakeId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            if (!db.Products.Any())
-            {
-                db.Products.AddRange(
-                    new Product { Code = "P001", Name = "可口可乐 330ml", Unit = "瓶", PurchasePrice = 2.0m, SalePrice = 3.5m, Stock = 100, SafetyStock = 20 },
-                    new Product { Code = "P002", Name = "农夫山泉 550ml", Unit = "瓶", PurchasePrice = 1.2m, SalePrice = 2.0m, Stock = 200, SafetyStock = 30 },
-                    new Product { Code = "P003", Name = "康师傅红烧牛肉面", Unit = "桶", PurchasePrice = 3.5m, SalePrice = 5.5m, Stock = 80,  SafetyStock = 15 },
-                    new Product { Code = "P004", Name = "乐事薯片 75g",     Unit = "袋", PurchasePrice = 4.0m, SalePrice = 6.5m, Stock = 60,  SafetyStock = 10 }
-                );
-            }
+            b.Entity<Product>()
+                .HasOne(p => p.Category)
+                .WithMany()
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
 
-            if (!db.Suppliers.Any())
-            {
-                db.Suppliers.AddRange(
-                    new Supplier { Name = "可口可乐华南分公司", Contact = "李经理", Phone = "13800001111", Address = "广州市" },
-                    new Supplier { Name = "农夫山泉股份有限公司", Contact = "王经理", Phone = "13800002222", Address = "杭州市" },
-                    new Supplier { Name = "康师傅食品",         Contact = "赵经理", Phone = "13800003333", Address = "天津市" }
-                );
-            }
+            // ---------- 乐观锁 ----------
+            b.Entity<Product>()
+                .Property(p => p.RowVersion)
+                .IsConcurrencyToken();
 
-            if (!db.Customers.Any())
-            {
-                db.Customers.AddRange(
-                    new Customer { Name = "便利店 A", Contact = "张老板", Phone = "13900001111", Address = "广州天河" },
-                    new Customer { Name = "便利店 B", Contact = "刘老板", Phone = "13900002222", Address = "广州海珠" },
-                    new Customer { Name = "超市 C",   Contact = "陈经理", Phone = "13900003333", Address = "广州番禺" }
-                );
-            }
+            // ---------- 软删除全局过滤 ----------
+            b.Entity<Product>().HasQueryFilter(p => !p.IsDeleted);
+            b.Entity<ProductCategory>().HasQueryFilter(c => !c.IsDeleted);
+            b.Entity<Supplier>().HasQueryFilter(s => !s.IsDeleted);
+            b.Entity<Customer>().HasQueryFilter(c => !c.IsDeleted);
 
-            db.SaveChanges();
+            // 计算属性不落库
+            b.Entity<StocktakeItem>().Ignore(i => i.Diff);
+            b.Entity<PurchaseOrderItem>().Ignore(i => i.Subtotal);
+            b.Entity<SaleOrderItem>().Ignore(i => i.Subtotal);
         }
     }
 }

@@ -10,6 +10,7 @@ namespace 进销存demo.Services
         Task ConfirmAsync(int id);
         Task CancelAsync(int id);
         Task DeleteAsync(int id);
-        string GenerateOrderNo();
+        Task ReturnAsync(int id, string? remark = null);
+        Task<string> GenerateOrderNoAsync();
     }
 }

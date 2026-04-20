@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace 进销存demo.Models.Entities
 {
-    public class Customer
+    public class Customer : ISoftDelete, IAuditable, IAuditLogged
     {
         public int Id { get; set; }
 
@@ -23,5 +23,11 @@ namespace 进销存demo.Models.Entities
 
         [Display(Name = "创建时间")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        [Display(Name = "更新时间")]
+        public DateTime? UpdatedAt { get; set; }
+
+        public bool IsDeleted { get; set; }
+        public DateTime? DeletedAt { get; set; }
     }
 }

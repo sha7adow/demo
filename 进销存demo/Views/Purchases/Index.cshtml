@@ -1,10 +1,48 @@
-@model IEnumerable<PurchaseOrder>
-@{ ViewData["Title"] = "采购单"; }
+@model IReadOnlyList<PurchaseOrder>
+@{
+    ViewData["Title"] = "采购单";
+    var q = ViewBag.Query as PurchaseQuery ?? new PurchaseQuery();
+    var suppliers = ViewBag.Suppliers as List<Supplier> ?? new();
+}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>采购单</h3>
     <a class="btn btn-primary" asp-action="Create">+ 新建采购单</a>
 </div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input type="text" name="keyword" value="@q.Keyword" class="form-control" placeholder="单号" />
+    </div>
+    <div class="col-auto">
+        <select name="supplierId" class="form-select">
+            <option value="">全部供应商</option>
+            @foreach (var s in suppliers)
+            {
+                <option value="@s.Id" selected="@(q.SupplierId == s.Id)">@s.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <select name="status" class="form-select">
+            <option value="">全部状态</option>
+            @foreach (OrderStatus st in Enum.GetValues(typeof(OrderStatus)))
+            {
+                <option value="@((int)st)" selected="@(q.Status == st)">@st</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <input type="date" name="dateFrom" value="@(q.DateFrom?.ToString("yyyy-MM-dd"))" class="form-control" placeholder="起始日期" />
+    </div>
+    <div class="col-auto">
+        <input type="date" name="dateTo" value="@(q.DateTo?.ToString("yyyy-MM-dd"))" class="form-control" placeholder="结束日期" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary">搜索</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">重置</a>
+    </div>
+</form>
 
 <table class="table table-hover table-sm align-middle bg-white">
     <thead class="table-light">
@@ -21,13 +59,22 @@
             OrderStatus.Draft     => "bg-secondary",
             OrderStatus.Confirmed => "bg-success",
             OrderStatus.Cancelled => "bg-dark",
+            OrderStatus.Returned  => "bg-warning text-dark",
             _ => "bg-light"
+        };
+        string statusText = o.Status switch
+        {
+            OrderStatus.Draft => "草稿",
+            OrderStatus.Confirmed => "已入库",
+            OrderStatus.Cancelled => "已作废",
+            OrderStatus.Returned => "已退货",
+            _ => o.Status.ToString()
         };
         <tr>
             <td>@o.OrderNo</td>
             <td>@o.Supplier?.Name</td>
             <td>@o.OrderDate.ToString("yyyy-MM-dd")</td>
-            <td><span class="badge @badge">@o.Status</span></td>
+            <td><span class="badge @badge">@statusText</span></td>
             <td class="text-end">@o.TotalAmount.ToString("0.00")</td>
             <td>@o.Remark</td>
             <td><a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@o.Id">详情</a></td>
@@ -36,3 +83,5 @@
     @if (!Model.Any()) { <tr><td colspan="7" class="text-center text-muted py-4">暂无数据</td></tr> }
     </tbody>
 </table>
+
+@await Html.PartialAsync("_Pager")

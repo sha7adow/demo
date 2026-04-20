@@ -1,11 +1,16 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using 进销存demo.Data;
+using 进销存demo.Models;
 using 进销存demo.Models.Entities;
+using 进销存demo.Models.Identity;
+using 进销存demo.Models.Queries;
 using 进销存demo.Services;
 
 namespace 进销存demo.Controllers
 {
+    [Authorize]
     public class InventoryController : Controller
     {
         private readonly AppDbContext _db;
@@ -17,61 +22,79 @@ namespace 进销存demo.Controllers
             _inventory = inventory;
         }
 
-        // 库存清单：可按编码/名称搜索，可勾选「仅看告警」
-        public async Task<IActionResult> Index(string? keyword, bool onlyWarning = false)
+        public async Task<IActionResult> Index([FromQuery] ProductQuery q)
         {
-            var q = _db.Products.AsQueryable();
-            if (!string.IsNullOrWhiteSpace(keyword))
-                q = q.Where(p => p.Code.Contains(keyword) || p.Name.Contains(keyword));
-            if (onlyWarning)
-                q = q.Where(p => p.Stock <= p.SafetyStock);
+            var query = _db.Products.Include(p => p.Category).Where(p => p.IsActive).AsQueryable();
 
-            ViewBag.Keyword = keyword;
-            ViewBag.OnlyWarning = onlyWarning;
-            return View(await q.OrderBy(p => p.Code).ToListAsync());
+            if (!string.IsNullOrWhiteSpace(q.Keyword))
+                query = query.Where(p => p.Code.Contains(q.Keyword) || p.Name.Contains(q.Keyword));
+
+            if (q.CategoryId.HasValue)
+                query = query.Where(p => p.CategoryId == q.CategoryId);
+
+            if (q.OnlyWarning == true)
+                query = query.Where(p => p.Stock <= p.SafetyStock);
+
+            var paged = await PagedList<Product>.CreateAsync(query.OrderBy(p => p.Code), q.Page, q.PageSize);
+
+            ViewBag.Query = q;
+            ViewBag.Categories = await _db.ProductCategories.OrderBy(c => c.Name).ToListAsync();
+            ViewBag.Page = paged.PageIndex;
+            ViewBag.PageSize = paged.PageSize;
+            ViewBag.TotalPages = paged.TotalPages;
+            ViewBag.TotalCount = paged.TotalCount;
+            return View(paged.Items);
         }
 
-        // 库存流水
-        public async Task<IActionResult> Transactions(int? productId)
+        public async Task<IActionResult> Transactions([FromQuery] TransactionQuery q)
         {
-            var q = _db.StockTransactions.Include(t => t.Product).AsQueryable();
-            if (productId.HasValue)
-                q = q.Where(t => t.ProductId == productId.Value);
+            var query = _db.StockTransactions.Include(t => t.Product).AsQueryable();
 
+            if (q.ProductId.HasValue)
+                query = query.Where(t => t.ProductId == q.ProductId.Value);
+            if (q.ChangeType.HasValue)
+                query = query.Where(t => t.ChangeType == q.ChangeType.Value);
+            if (q.DateFrom.HasValue)
+                query = query.Where(t => t.CreatedAt >= q.DateFrom.Value.Date);
+            if (q.DateTo.HasValue)
+            {
+                var end = q.DateTo.Value.Date.AddDays(1);
+                query = query.Where(t => t.CreatedAt < end);
+            }
+
+            var paged = await PagedList<StockTransaction>.CreateAsync(
+                query.OrderByDescending(t => t.Id), q.Page, q.PageSize);
+
+            ViewBag.Query = q;
             ViewBag.Products = await _db.Products.OrderBy(p => p.Code).ToListAsync();
-            ViewBag.ProductId = productId;
-            return View(await q.OrderByDescending(t => t.Id).Take(500).ToListAsync());
+            ViewBag.Page = paged.PageIndex;
+            ViewBag.PageSize = paged.PageSize;
+            ViewBag.TotalPages = paged.TotalPages;
+            ViewBag.TotalCount = paged.TotalCount;
+            return View(paged.Items);
         }
 
-        // 库存调整：手工 + / -
+        [Authorize(Roles = Roles.Admin + "," + Roles.Warehouse)]
         public async Task<IActionResult> Adjust()
         {
-            ViewBag.Products = await _db.Products.OrderBy(p => p.Code).ToListAsync();
+            ViewBag.Products = await _db.Products.Where(p => p.IsActive).OrderBy(p => p.Code).ToListAsync();
             return View();
         }
 
+        [Authorize(Roles = Roles.Admin + "," + Roles.Warehouse)]
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Adjust(int productId, int quantityDelta, string? remark)
         {
             try
             {
-                if (productId <= 0) throw new InvalidOperationException("请选择商品");
-                if (quantityDelta == 0) throw new InvalidOperationException("调整数量不能为 0");
-
-                await _inventory.ApplyStockChangeAsync(
-                    productId,
-                    quantityDelta,
-                    StockChangeType.Adjust,
-                    refNo: null,
-                    remark: string.IsNullOrWhiteSpace(remark) ? "手工调整" : remark);
-
+                await _inventory.AdjustAsync(productId, quantityDelta, remark);
                 TempData["Msg"] = "库存调整成功";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 TempData["Err"] = ex.Message;
-                ViewBag.Products = await _db.Products.OrderBy(p => p.Code).ToListAsync();
+                ViewBag.Products = await _db.Products.Where(p => p.IsActive).OrderBy(p => p.Code).ToListAsync();
                 return View();
             }
         }

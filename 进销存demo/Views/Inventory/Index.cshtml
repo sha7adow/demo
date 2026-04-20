@@ -1,21 +1,35 @@
-@model IEnumerable<Product>
-@{ ViewData["Title"] = "库存"; }
+@model IReadOnlyList<Product>
+@{
+    ViewData["Title"] = "库存";
+    var q = ViewBag.Query as ProductQuery ?? new ProductQuery();
+    var categories = ViewBag.Categories as List<ProductCategory> ?? new();
+}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>库存清单</h3>
     <div>
         <a class="btn btn-outline-primary" asp-action="Adjust">库存调整</a>
         <a class="btn btn-outline-secondary" asp-action="Transactions">查看流水</a>
+        <a class="btn btn-outline-info" asp-controller="Stocktakes" asp-action="Index">盘点</a>
     </div>
 </div>
 
 <form method="get" class="row g-2 mb-3">
     <div class="col-auto">
-        <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control" placeholder="编码 / 名称" />
+        <input type="text" name="keyword" value="@q.Keyword" class="form-control" placeholder="编码 / 名称" />
+    </div>
+    <div class="col-auto">
+        <select name="categoryId" class="form-select">
+            <option value="">全部分类</option>
+            @foreach (var c in categories)
+            {
+                <option value="@c.Id" selected="@(q.CategoryId == c.Id)">@c.Name</option>
+            }
+        </select>
     </div>
     <div class="col-auto form-check pt-2 ms-2">
-        <input class="form-check-input" type="checkbox" name="onlyWarning" value="true" id="cbOnlyWarning" @(ViewBag.OnlyWarning == true ? "checked" : "") />
-        <label class="form-check-label" for="cbOnlyWarning">仅看库存告警</label>
+        <input class="form-check-input" type="checkbox" name="onlyWarning" value="true" id="cbOnlyWarning" @(q.OnlyWarning == true ? "checked" : "") />
+        <label class="form-check-label" for="cbOnlyWarning">仅看告警</label>
     </div>
     <div class="col-auto">
         <button class="btn btn-outline-primary">筛选</button>
@@ -26,7 +40,7 @@
 <table class="table table-hover table-sm align-middle bg-white">
     <thead class="table-light">
         <tr>
-            <th>编码</th><th>名称</th><th>单位</th>
+            <th>编码</th><th>名称</th><th>分类</th><th>单位</th>
             <th class="text-end">当前库存</th><th class="text-end">安全库存</th>
             <th class="text-end">库存金额(按采购价)</th>
             <th>状态</th>
@@ -39,6 +53,7 @@
         <tr class="@(warn ? "table-warning" : "")">
             <td>@p.Code</td>
             <td>@p.Name</td>
+            <td>@p.Category?.Name</td>
             <td>@p.Unit</td>
             <td class="text-end">@p.Stock</td>
             <td class="text-end">@p.SafetyStock</td>
@@ -50,6 +65,8 @@
             </td>
         </tr>
     }
-    @if (!Model.Any()) { <tr><td colspan="7" class="text-center text-muted py-4">暂无数据</td></tr> }
+    @if (!Model.Any()) { <tr><td colspan="8" class="text-center text-muted py-4">暂无数据</td></tr> }
     </tbody>
 </table>
+
+@await Html.PartialAsync("_Pager")

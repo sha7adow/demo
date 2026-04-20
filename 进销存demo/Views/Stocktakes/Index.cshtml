@@ -1,0 +1,48 @@
+@model List<Stocktake>
+@{ ViewData["Title"] = "库存盘点"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>库存盘点</h3>
+    <form method="post" asp-action="Create" class="d-inline" onsubmit="return confirm('将对所有启用商品生成盘点单草稿，继续？')">
+        @Html.AntiForgeryToken()
+        <input type="text" name="remark" class="form-control d-inline-block me-2" style="width:220px" placeholder="备注（可选）" />
+        <button class="btn btn-primary">+ 新建盘点单</button>
+    </form>
+</div>
+
+<table class="table table-hover table-sm align-middle bg-white">
+    <thead class="table-light">
+        <tr>
+            <th>单号</th><th>日期</th><th>状态</th>
+            <th class="text-end">明细数</th><th>备注</th><th style="width:120px">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var s in Model)
+    {
+        var badge = s.Status switch
+        {
+            StocktakeStatus.Draft => "bg-secondary",
+            StocktakeStatus.Confirmed => "bg-success",
+            StocktakeStatus.Cancelled => "bg-dark",
+            _ => "bg-light"
+        };
+        string statusText = s.Status switch
+        {
+            StocktakeStatus.Draft => "草稿",
+            StocktakeStatus.Confirmed => "已确认",
+            StocktakeStatus.Cancelled => "已作废",
+            _ => s.Status.ToString()
+        };
+        <tr>
+            <td>@s.OrderNo</td>
+            <td>@s.OrderDate.ToString("yyyy-MM-dd")</td>
+            <td><span class="badge @badge">@statusText</span></td>
+            <td class="text-end">@s.Items.Count</td>
+            <td>@s.Remark</td>
+            <td><a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@s.Id">详情</a></td>
+        </tr>
+    }
+    @if (!Model.Any()) { <tr><td colspan="6" class="text-center text-muted py-4">暂无盘点记录</td></tr> }
+    </tbody>
+</table>
