@@ -1,16 +1,50 @@
 @model IReadOnlyList<PurchaseOrder>
+@using 进销存demo.Models.Identity
 @{
     ViewData["Title"] = "采购单";
     var q = ViewBag.Query as PurchaseQuery ?? new PurchaseQuery();
     var suppliers = ViewBag.Suppliers as List<Supplier> ?? new();
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>采购单</h3>
-    <a class="btn btn-primary" asp-action="Create">+ 新建采购单</a>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h3 class="mb-0">采购单</h3>
+    <div class="d-flex flex-wrap gap-2">
+        @if (User.IsInRole(Roles.Admin))
+        {
+            <a class="btn btn-outline-success" asp-action="ExportExcel">导出 Excel</a>
+            <a class="btn btn-outline-secondary" asp-action="DownloadImportTemplate">下载导入模板</a>
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importPurchaseModal">导入 Excel</button>
+        }
+        <a class="btn btn-primary" asp-action="Create">+ 新建采购单</a>
+    </div>
 </div>
 
-<form method="get" class="row g-2 mb-3">
+@if (User.IsInRole(Roles.Admin))
+{
+    <div class="modal fade" id="importPurchaseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <form asp-action="ImportExcel" method="post" enctype="multipart/form-data" class="modal-content">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">导入采购草稿 Excel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted">表头与导出一致；相同「单号」多行合并为一张<strong>草稿</strong>单，单号将原样写入（勿与已有单重复）；导入后请在列表中「确认入库」。任一行校验失败则整表回滚。单文件不超过 2MB。</p>
+                    <input type="file" name="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="form-control" required />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">上传导入</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+<button class="btn btn-outline-secondary btn-sm d-md-none mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#purchaseFilterCollapse" aria-expanded="false" aria-controls="purchaseFilterCollapse">筛选</button>
+<div class="collapse d-md-block mb-3" id="purchaseFilterCollapse">
+<form method="get" class="row g-2">
     <div class="col-auto">
         <input type="text" name="keyword" value="@q.Keyword" class="form-control" placeholder="单号" />
     </div>
@@ -43,8 +77,10 @@
         <a class="btn btn-outline-secondary" asp-action="Index">重置</a>
     </div>
 </form>
+</div>
 
-<table class="table table-hover table-sm align-middle bg-white">
+<div class="table-responsive">
+<table class="table table-hover table-sm align-middle bg-white jxc-table-wide">
     <thead class="table-light">
         <tr>
             <th>单号</th><th>供应商</th><th>下单日期</th><th>状态</th>
@@ -83,5 +119,6 @@
     @if (!Model.Any()) { <tr><td colspan="7" class="text-center text-muted py-4">暂无数据</td></tr> }
     </tbody>
 </table>
+</div>
 
 @await Html.PartialAsync("_Pager")

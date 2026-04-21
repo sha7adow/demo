@@ -11,6 +11,14 @@ namespace 进销存demo.Models.Options
         public PagingOptions Paging { get; set; } = new();
         public InventoryOptions Inventory { get; set; } = new();
         public SeedOptions Seed { get; set; } = new();
+        public CompanyOptions Company { get; set; } = new();
+    }
+
+    public class CompanyOptions
+    {
+        public string Name { get; set; } = "进销存演示公司";
+        /// <summary>QuestPDF 字体；Linux 容器可设为 Noto Sans CJK SC（需安装 fonts-noto-cjk）。</summary>
+        public string PdfFontFamily { get; set; } = "Microsoft YaHei";
     }
 
     public class OrderPrefixOptions

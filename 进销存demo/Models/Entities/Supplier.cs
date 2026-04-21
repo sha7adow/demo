@@ -21,6 +21,9 @@ namespace 进销存demo.Models.Entities
         [StringLength(200), Display(Name = "备注")]
         public string? Remark { get; set; }
 
+        [Display(Name = "账期(天)")]
+        public int PaymentTermDays { get; set; } = 30;
+
         [Display(Name = "创建时间")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 

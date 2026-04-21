@@ -1,4 +1,5 @@
 ﻿@model DashboardViewModel
+@using 进销存demo.Models.Identity
 @{ ViewData["Title"] = "仪表盘"; }
 
 <h3 class="mb-3">仪表盘</h3>
@@ -33,7 +34,58 @@
             <a class="text-white small" asp-controller="Inventory" asp-action="Index">库存清单 →</a>
         </div></div>
     </div>
+</div>
 
+<div class="row g-3 mb-3">
+    <div class="col-xl-8">
+        <div class="card"><div class="card-body">
+            <h5 class="card-title">近 30 天采购 vs 销售（金额）</h5>
+            <div id="chart-trend" class="jxc-chart"></div>
+        </div></div>
+    </div>
+    <div class="col-xl-4">
+        <div class="card"><div class="card-body">
+            <h5 class="card-title">TOP10 商品销量</h5>
+            <div id="chart-top-products" class="jxc-chart-sm"></div>
+        </div></div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-xl-6">
+        <div class="card"><div class="card-body">
+            <h5 class="card-title">库存价值 · 按分类</h5>
+            <div id="chart-stock-category" class="jxc-chart-sm"></div>
+        </div></div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card"><div class="card-body">
+            <h5 class="card-title">库存预警（低于安全库存 Top10）</h5>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0 jxc-table-wide">
+                    <thead class="table-light"><tr><th>编码</th><th>名称</th><th class="text-end">库存</th><th class="text-end">安全库存</th></tr></thead>
+                    <tbody>
+                    @foreach (var p in Model.LowStockTop)
+                    {
+                        <tr class="@(p.Stock == 0 ? "table-danger" : "table-warning")">
+                            <td>@p.Code</td><td>@p.Name</td>
+                            <td class="text-end">@p.Stock</td>
+                            <td class="text-end">@p.SafetyStock</td>
+                        </tr>
+                    }
+                    @if (Model.LowStockTop.Count == 0)
+                    {
+                        <tr><td colspan="4" class="text-center text-muted py-3">无告警，库存安全 ✓</td></tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            <a class="btn btn-sm btn-outline-secondary mt-2" asp-controller="Inventory" asp-action="Index" asp-route-onlyWarning="true">库存告警列表 →</a>
+        </div></div>
+    </div>
+</div>
+
+<div class="row g-3">
     <div class="col-md-6">
         <div class="card"><div class="card-body">
             <h5 class="card-title">今日采购入库</h5>
@@ -59,32 +111,45 @@
         </div></div>
     </div>
 
-    <div class="col-md-6">
-        <div class="card"><div class="card-body">
-            <h5 class="card-title">库存告警 Top 8</h5>
-            <table class="table table-sm align-middle mb-0">
-                <thead><tr><th>编码</th><th>名称</th><th class="text-end">库存</th><th class="text-end">安全库存</th></tr></thead>
-                <tbody>
-                @foreach (var p in Model.LowStockTop)
-                {
-                    <tr class="@(p.Stock == 0 ? "table-danger" : "table-warning")">
-                        <td>@p.Code</td><td>@p.Name</td>
-                        <td class="text-end">@p.Stock</td>
-                        <td class="text-end">@p.SafetyStock</td>
-                    </tr>
-                }
-                @if (Model.LowStockTop.Count == 0)
-                {
-                    <tr><td colspan="4" class="text-center text-muted py-3">无告警，库存安全 ✓</td></tr>
-                }
-                </tbody>
-            </table>
+    <div class="col-md-5">
+        <div class="card border-warning"><div class="card-body">
+            <h5 class="card-title">临期预警（30 天内）</h5>
+            <p class="display-6 mb-0">@Model.ExpiringBatchCount30 <span class="fs-6 text-muted">个批次</span></p>
+            <a class="btn btn-sm btn-outline-warning mt-2" asp-controller="Inventory" asp-action="Expiring">查看明细 →</a>
         </div></div>
     </div>
+    @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Salesperson))
+    {
+        <div class="col-md-7">
+            <div class="card border-primary"><div class="card-body">
+                <h5 class="card-title">应收账款概览</h5>
+                <p class="mb-2">逾期应收余额（到期日早于今天且未结清）：<strong class="text-danger">¥ @Model.OverdueReceivableAmount.ToString("N2")</strong></p>
+                <h6 class="text-muted small">未结清 TOP5 客户（按余额）</h6>
+                <div class="table-responsive">
+                <table class="table table-sm mb-0 jxc-table-wide">
+                    <thead><tr><th>客户</th><th class="text-end">未收余额</th></tr></thead>
+                    <tbody>
+                    @foreach (var t in Model.ReceivableTop5)
+                    {
+                        <tr><td>@t.CustomerName</td><td class="text-end">¥ @t.Balance.ToString("N2")</td></tr>
+                    }
+                    @if (Model.ReceivableTop5.Count == 0)
+                    {
+                        <tr><td colspan="2" class="text-muted text-center py-2">暂无未结清应收</td></tr>
+                    }
+                    </tbody>
+                </table>
+                </div>
+                <a class="btn btn-sm btn-outline-primary mt-2" asp-controller="Receivables" asp-action="Index">应收列表 →</a>
+            </div></div>
+        </div>
+    }
+
     <div class="col-md-6">
         <div class="card"><div class="card-body">
             <h5 class="card-title">最近库存流水</h5>
-            <table class="table table-sm align-middle mb-0">
+            <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0 jxc-table-wide">
                 <thead><tr><th>时间</th><th>商品</th><th>类型</th><th class="text-end">变化</th></tr></thead>
                 <tbody>
                 @foreach (var t in Model.RecentTransactions)
@@ -111,7 +176,76 @@
                 }
                 </tbody>
             </table>
+            </div>
             <a class="btn btn-sm btn-outline-secondary mt-2" asp-controller="Inventory" asp-action="Transactions">查看全部流水 →</a>
         </div></div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+(function () {
+    function whenEcharts(cb, attemptsLeft) {
+        if (typeof echarts !== 'undefined') {
+            cb();
+            return;
+        }
+        if (attemptsLeft <= 0) return;
+        setTimeout(function () { whenEcharts(cb, attemptsLeft - 1); }, 50);
+    }
+    whenEcharts(function () {
+    function resizeAll() {
+        document.querySelectorAll('[id^="chart-"]').forEach(function (el) {
+            var c = echarts.getInstanceByDom(el);
+            if (c) c.resize();
+        });
+    }
+    window.addEventListener('resize', resizeAll);
+
+    fetch('/api/dashboard/trend?days=30').then(function (r) { return r.json(); }).then(function (d) {
+        var el = document.getElementById('chart-trend');
+        if (!el) return;
+        var c = echarts.init(el);
+        c.setOption({
+            tooltip: { trigger: 'axis' },
+            legend: { data: ['采购', '销售'] },
+            xAxis: { type: 'category', data: d.dates },
+            yAxis: { type: 'value' },
+            series: [
+                { name: '采购', type: 'line', smooth: true, data: d.purchase },
+                { name: '销售', type: 'line', smooth: true, data: d.sale }
+            ]
+        });
+    }).catch(function () {});
+
+    fetch('/api/dashboard/top-products?take=10').then(function (r) { return r.json(); }).then(function (d) {
+        var el = document.getElementById('chart-top-products');
+        if (!el || !d.items || !d.items.length) return;
+        var c = echarts.init(el);
+        var names = d.items.map(function (x) { return (x.code || '') + ' ' + (x.name || ''); });
+        var qty = d.items.map(function (x) { return x.qty; });
+        c.setOption({
+            tooltip: { trigger: 'axis' },
+            xAxis: { type: 'category', data: names, axisLabel: { rotate: 35, interval: 0 } },
+            yAxis: { type: 'value', name: '销量' },
+            series: [{ type: 'bar', data: qty, itemStyle: { color: '#5470c6' } }]
+        });
+    }).catch(function () {});
+
+    fetch('/api/dashboard/stock-by-category').then(function (r) { return r.json(); }).then(function (d) {
+        var el = document.getElementById('chart-stock-category');
+        if (!el || !d.categories || !d.categories.length) return;
+        var c = echarts.init(el);
+        c.setOption({
+            tooltip: { trigger: 'item', formatter: '{b}: ¥{c} ({d}%)' },
+            series: [{
+                type: 'pie',
+                radius: ['35%', '70%'],
+                data: d.categories.map(function (x) { return { name: x.name, value: Number(x.value) }; })
+            }]
+        });
+    }).catch(function () {});
+    }, 100);
+})();
+</script>
+}

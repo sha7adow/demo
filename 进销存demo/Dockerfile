@@ -18,9 +18,9 @@ ENV ASPNETCORE_URLS=http://+:8080 \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     TZ=Asia/Shanghai
 
-# 中文字体 & 时区（SQLite 需要基础 glibc 支持即可，基础镜像已自带）
+# 中文字体（QuestPDF）& 时区
 RUN apt-get update \
- && apt-get install -y --no-install-recommends tzdata \
+ && apt-get install -y --no-install-recommends tzdata fonts-noto-cjk \
  && rm -rf /var/lib/apt/lists/* \
  && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 

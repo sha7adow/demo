@@ -1,4 +1,4 @@
-2026-04-20 21:19:31.911 [FTL]  主机启动失败
+2026-04-21 09:22:01.427 [FTL]  主机启动失败
 Microsoft.Extensions.Hosting.HostAbortedException: The host was aborted.
    at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.ThrowHostAborted()
    at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.OnNext(KeyValuePair`2 value)
@@ -6,5 +6,5 @@ Microsoft.Extensions.Hosting.HostAbortedException: The host was aborted.
    at Microsoft.Extensions.Hosting.HostBuilder.ResolveHost(IServiceProvider serviceProvider, DiagnosticListener diagnosticListener)
    at Microsoft.Extensions.Hosting.HostApplicationBuilder.Build()
    at Microsoft.AspNetCore.Builder.WebApplicationBuilder.Build()
-   at Program.<Main>$(String[] args) in D:\C#\C#基础语法\进销存demo\进销存demo\Program.cs:line 100
-2026-04-20 21:19:45.355 [INF]  =========== 进销存demo 启动 ===========
+   at Program.<Main>$(String[] args) in D:\C#\C#基础语法\进销存demo\进销存demo\Program.cs:line 123
+2026-04-21 09:42:56.955 [INF]  =========== 进销存demo 启动 ===========

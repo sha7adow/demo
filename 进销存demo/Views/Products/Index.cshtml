@@ -1,14 +1,50 @@
 @model IReadOnlyList<Product>
+@using 进销存demo.Models.Identity
 @{
     ViewData["Title"] = "商品管理";
     var q = ViewBag.Query as ProductQuery ?? new ProductQuery();
     var categories = ViewBag.Categories as List<ProductCategory> ?? new();
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>商品管理</h3>
-    <a class="btn btn-primary" asp-action="Create">+ 新增商品</a>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h3 class="mb-0">商品管理</h3>
+    <div class="d-flex flex-wrap gap-2">
+        @if (User.IsInRole(Roles.Admin))
+        {
+            <a class="btn btn-outline-success" asp-action="ExportExcel">导出 Excel</a>
+            <a class="btn btn-outline-secondary" asp-action="DownloadProductTemplate">下载导入模板</a>
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importProductModal">导入 Excel</button>
+        }
+        @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Warehouse))
+        {
+            <span class="text-muted small align-self-center d-none d-md-inline">启用批次的商品可在列表中打开「批次」</span>
+        }
+        <a class="btn btn-primary" asp-action="Create">+ 新增商品</a>
+    </div>
 </div>
+
+@if (User.IsInRole(Roles.Admin))
+{
+    <div class="modal fade" id="importProductModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form asp-action="ImportExcel" method="post" enctype="multipart/form-data" class="modal-content">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">导入商品 Excel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted">请先下载模板填写；单文件不超过 2MB；编码重复的行将跳过。</p>
+                    <input type="file" name="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="form-control" required />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">上传导入</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
 
 <form method="get" class="row g-2 mb-3">
     <div class="col-auto">
@@ -37,7 +73,8 @@
     </div>
 </form>
 
-<table class="table table-hover table-sm align-middle bg-white">
+<div class="table-responsive">
+<table class="table table-hover table-sm align-middle bg-white jxc-table-wide">
     <thead class="table-light">
         <tr>
             <th>编码</th><th>名称</th><th>条码</th><th>分类</th><th>单位</th>
@@ -64,6 +101,10 @@
                 else { <span class="badge bg-success">启用</span> }
             </td>
             <td>
+                @if (p.TrackBatch && (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Warehouse)))
+                {
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Batches" asp-route-id="@p.Id">批次</a>
+                }
                 <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@p.Id">编辑</a>
                 <form method="post" asp-action="Delete" asp-route-id="@p.Id" class="d-inline" onsubmit="return confirm('确认删除？（将软删除，可从数据库恢复）')">
                     @Html.AntiForgeryToken()
@@ -78,5 +119,6 @@
     }
     </tbody>
 </table>
+</div>
 
 @await Html.PartialAsync("_Pager")

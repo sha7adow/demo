@@ -1,0 +1,40 @@
+2026-04-21 08:20:31.324 [WRN] Microsoft.EntityFrameworkCore.Model.Validation Entity 'Supplier' has a global query filter defined and is the required end of a relationship with the entity 'PurchaseOrder'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-04-21 08:20:31.329 [WRN] Microsoft.EntityFrameworkCore.Model.Validation Entity 'Product' has a global query filter defined and is the required end of a relationship with the entity 'PurchaseOrderItem'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-04-21 08:20:31.329 [WRN] Microsoft.EntityFrameworkCore.Model.Validation Entity 'Customer' has a global query filter defined and is the required end of a relationship with the entity 'SaleOrder'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-04-21 08:20:31.329 [WRN] Microsoft.EntityFrameworkCore.Model.Validation Entity 'Product' has a global query filter defined and is the required end of a relationship with the entity 'SaleOrderItem'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-04-21 08:20:31.329 [WRN] Microsoft.EntityFrameworkCore.Model.Validation Entity 'Product' has a global query filter defined and is the required end of a relationship with the entity 'StockTransaction'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-04-21 08:20:31.329 [WRN] Microsoft.EntityFrameworkCore.Model.Validation Entity 'Product' has a global query filter defined and is the required end of a relationship with the entity 'StocktakeItem'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-04-21 08:20:31.696 [INF] Microsoft.Hosting.Lifetime Now listening on: http://localhost:5088
+2026-04-21 08:20:31.698 [INF] Microsoft.Hosting.Lifetime Application started. Press Ctrl+C to shut down.
+2026-04-21 08:20:31.698 [INF] Microsoft.Hosting.Lifetime Hosting environment: Development
+2026-04-21 08:20:31.698 [INF] Microsoft.Hosting.Lifetime Content root path: D:\C#\C#基础语法\进销存demo\进销存demo
+2026-04-21 08:20:48.530 [WRN] Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware Failed to determine the https port for redirect.
+2026-04-21 08:20:48.609 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Account/Login responded 200 in 76.5866 ms
+2026-04-21 08:20:48.771 [INF] 进销存demo.Controllers.AccountController 用户 admin 登录成功
+2026-04-21 08:20:48.772 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Account/Login responded 302 in 109.8586 ms
+2026-04-21 08:20:48.953 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET / responded 200 in 179.5192 ms
+2026-04-21 08:20:49.050 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Products/Edit/1 responded 200 in 77.4542 ms
+2026-04-21 08:20:49.221 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Products/Edit/1 responded 302 in 142.9211 ms
+2026-04-21 08:20:49.264 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Products responded 200 in 42.3065 ms
+2026-04-21 08:20:49.298 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Products/Edit/1 responded 200 in 4.5981 ms
+2026-04-21 08:20:49.331 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Products/Edit/1 responded 200 in 12.6993 ms
+2026-04-21 08:21:33.285 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Account/Login responded 200 in 2.5035 ms
+2026-04-21 08:21:33.369 [INF] 进销存demo.Controllers.AccountController 用户 admin 登录成功
+2026-04-21 08:21:33.369 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Account/Login responded 302 in 42.6912 ms
+2026-04-21 08:21:33.375 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET / responded 200 in 4.6749 ms
+2026-04-21 08:21:33.397 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Products/Edit/1 responded 200 in 3.6066 ms
+2026-04-21 08:21:45.162 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Account/Login responded 200 in 1.6059 ms
+2026-04-21 08:21:45.228 [INF] 进销存demo.Controllers.AccountController 用户 admin 登录成功
+2026-04-21 08:21:45.228 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Account/Login responded 302 in 40.4868 ms
+2026-04-21 08:21:45.232 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET / responded 200 in 2.9390 ms
+2026-04-21 08:21:45.253 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Products/Edit/1 responded 200 in 2.6598 ms
+2026-04-21 08:21:57.898 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Account/Login responded 200 in 1.2396 ms
+2026-04-21 08:21:57.982 [INF] 进销存demo.Controllers.AccountController 用户 admin 登录成功
+2026-04-21 08:21:57.982 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Account/Login responded 302 in 39.8964 ms
+2026-04-21 08:21:57.985 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET / responded 200 in 2.6078 ms
+2026-04-21 08:21:58.022 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Products/Edit/1 responded 200 in 2.2954 ms
+2026-04-21 08:21:58.062 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Products/Edit/1 responded 302 in 8.9039 ms
+2026-04-21 08:21:58.065 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Products responded 200 in 2.6875 ms
+2026-04-21 08:21:58.090 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Products/Edit/1 responded 200 in 2.2760 ms
+2026-04-21 08:21:58.115 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Products/Edit/1 responded 200 in 3.2829 ms
+2026-04-21 08:41:54.858 [INF]  =========== 进销存demo 启动 ===========

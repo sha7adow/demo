@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using 进销存demo.Models.Options;
 
 namespace 进销存demo.Models
 {
@@ -24,11 +25,15 @@ namespace 进销存demo.Models
         }
 
         public static async Task<PagedList<T>> CreateAsync(
-            IQueryable<T> source, int pageIndex, int pageSize, CancellationToken ct = default)
+            IQueryable<T> source,
+            int pageIndex,
+            int pageSize,
+            PagingOptions paging,
+            CancellationToken ct = default)
         {
             if (pageIndex < 1) pageIndex = 1;
-            if (pageSize < 1) pageSize = 20;
-            if (pageSize > 200) pageSize = 200;
+            if (pageSize < 1) pageSize = paging.DefaultPageSize;
+            if (pageSize > paging.MaxPageSize) pageSize = paging.MaxPageSize;
 
             var total = await source.CountAsync(ct);
             var items = await source.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync(ct);

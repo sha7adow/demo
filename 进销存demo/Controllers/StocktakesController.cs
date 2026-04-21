@@ -9,10 +9,21 @@ namespace 进销存demo.Controllers
     public class StocktakesController : Controller
     {
         private readonly IStocktakeService _stocktake;
+        private readonly IPdfService _pdf;
 
-        public StocktakesController(IStocktakeService stocktake)
+        public StocktakesController(IStocktakeService stocktake, IPdfService pdf)
         {
             _stocktake = stocktake;
+            _pdf = pdf;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Print(int id)
+        {
+            var st = await _stocktake.GetAsync(id);
+            if (st == null) return NotFound();
+            var bytes = _pdf.RenderStocktake(st);
+            return File(bytes, "application/pdf", $"{st.OrderNo}.pdf");
         }
 
         public async Task<IActionResult> Index() => View(await _stocktake.ListAsync());

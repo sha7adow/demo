@@ -11,8 +11,11 @@ namespace 进销存demo.Models.Entities
         public int Id { get; set; }
 
         [Display(Name = "商品")]
-        public int ProductId { get; set; }
+        public int? ProductId { get; set; }
         public Product? Product { get; set; }
+
+        public int? BatchId { get; set; }
+        public ProductBatch? Batch { get; set; }
 
         [Display(Name = "类型")]
         public StockChangeType ChangeType { get; set; }

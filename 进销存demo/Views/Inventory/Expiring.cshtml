@@ -1,0 +1,44 @@
+@model IReadOnlyList<ProductBatch>
+@using 进销存demo.Models.Entities
+@{
+    ViewData["Title"] = "临期预警";
+    var n = ViewBag.Count as int? ?? Model.Count;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>临期预警（30 天内到期且仍有库存）</h3>
+    <a class="btn btn-outline-secondary" asp-action="Index">返回库存</a>
+</div>
+
+<p class="text-muted">当前共 <strong>@n</strong> 个批次满足条件（到期日在今天之后、@DateTime.Today.AddDays(30).ToString("yyyy-MM-dd") 及之前）。</p>
+
+<div class="table-responsive">
+<table class="table table-sm table-hover align-middle bg-white jxc-table-wide">
+    <thead class="table-light">
+        <tr>
+            <th>商品</th>
+            <th>批次号</th>
+            <th class="text-end">剩余</th>
+            <th>到期日</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var b in Model)
+    {
+        var days = (b.ExpiryDate.Date - DateTime.Today).Days;
+        <tr class="@(days <= 7 ? "table-warning" : "")">
+            <td>@b.Product?.Code @b.Product?.Name</td>
+            <td>@b.BatchNo</td>
+            <td class="text-end">@b.RemainingQty</td>
+            <td>@b.ExpiryDate.ToString("yyyy-MM-dd") <span class="text-muted small">（剩 @days 天）</span></td>
+            <td><a class="btn btn-sm btn-outline-primary" asp-controller="Products" asp-action="Batches" asp-route-id="@b.ProductId">批次明细</a></td>
+        </tr>
+    }
+    @if (Model.Count == 0)
+    {
+        <tr><td colspan="5" class="text-center text-muted py-4">暂无临期批次</td></tr>
+    }
+    </tbody>
+</table>
+</div>

@@ -10,13 +10,20 @@ namespace 进销存demo.Services
     {
         private readonly AppDbContext _db;
         private readonly IInventoryService _inventory;
+        private readonly IBatchInventoryService _batch;
         private readonly IOrderNoGenerator _orderNo;
         private readonly string _prefix;
 
-        public StocktakeService(AppDbContext db, IInventoryService inventory, IOrderNoGenerator orderNo, IOptions<JxcOptions> options)
+        public StocktakeService(
+            AppDbContext db,
+            IInventoryService inventory,
+            IBatchInventoryService batch,
+            IOrderNoGenerator orderNo,
+            IOptions<JxcOptions> options)
         {
             _db = db;
             _inventory = inventory;
+            _batch = batch;
             _orderNo = orderNo;
             _prefix = options.Value.OrderPrefix.Stocktake;
         }
@@ -78,7 +85,8 @@ namespace 进销存demo.Services
 
             foreach (var item in st.Items)
             {
-                if (actualQtyByProductId.TryGetValue(item.ProductId, out var qty))
+                if (!item.ProductId.HasValue) continue;
+                if (actualQtyByProductId.TryGetValue(item.ProductId.Value, out var qty))
                 {
                     if (qty < 0) throw new InvalidOperationException($"实盘数不能为负数（ProductId={item.ProductId}）");
                     item.ActualQty = qty;
@@ -103,15 +111,49 @@ namespace 进销存demo.Services
 
                 foreach (var item in st.Items)
                 {
+                    if (!item.ProductId.HasValue)
+                        throw new InvalidOperationException("盘点明细缺少商品");
+                    var pid = item.ProductId.Value;
                     var diff = item.ActualQty - item.SystemQty;
                     if (diff == 0) continue;
 
-                    await _inventory.ApplyStockChangeAsync(
-                        item.ProductId,
-                        diff,
-                        StockChangeType.Stocktake,
-                        st.OrderNo,
-                        $"盘点 #{st.OrderNo}：系统 {item.SystemQty}，实盘 {item.ActualQty}");
+                    var prod = await _db.Products.AsNoTracking().FirstAsync(p => p.Id == pid);
+                    if (prod.TrackBatch)
+                    {
+                        if (diff > 0)
+                        {
+                            var pd = DateTime.Today;
+                            var shelf = prod.ShelfLifeDays <= 0 ? 365 : prod.ShelfLifeDays;
+                            var exp = pd.AddDays(shelf);
+                            await _batch.ReceiveAsync(
+                                pid,
+                                diff,
+                                prod.PurchasePrice,
+                                batchNo: $"ST{st.Id}-{item.Id}",
+                                pd,
+                                exp,
+                                st.OrderNo,
+                                purchaseOrderItemId: null,
+                                StockChangeType.Stocktake);
+                        }
+                        else
+                        {
+                            await _batch.IssueFifoAsync(
+                                pid,
+                                -diff,
+                                st.OrderNo,
+                                $"盘点 #{st.OrderNo}：系统 {item.SystemQty}，实盘 {item.ActualQty}");
+                        }
+                    }
+                    else
+                    {
+                        await _inventory.ApplyStockChangeAsync(
+                            pid,
+                            diff,
+                            StockChangeType.Stocktake,
+                            st.OrderNo,
+                            $"盘点 #{st.OrderNo}：系统 {item.SystemQty}，实盘 {item.ActualQty}");
+                    }
                 }
 
                 st.Status = StocktakeStatus.Confirmed;

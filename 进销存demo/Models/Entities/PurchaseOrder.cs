@@ -10,7 +10,7 @@ namespace 进销存demo.Models.Entities
         public string OrderNo { get; set; } = string.Empty;
 
         [Display(Name = "供应商")]
-        public int SupplierId { get; set; }
+        public int? SupplierId { get; set; }
         public Supplier? Supplier { get; set; }
 
         [Display(Name = "下单日期")]
@@ -37,6 +37,8 @@ namespace 进销存demo.Models.Entities
         [Display(Name = "退货时间")]
         public DateTime? ReturnedAt { get; set; }
 
+        public Payable? Payable { get; set; }
+
         public List<PurchaseOrderItem> Items { get; set; } = new();
     }
 
@@ -48,7 +50,7 @@ namespace 进销存demo.Models.Entities
         public PurchaseOrder? PurchaseOrder { get; set; }
 
         [Display(Name = "商品")]
-        public int ProductId { get; set; }
+        public int? ProductId { get; set; }
         public Product? Product { get; set; }
 
         [Display(Name = "数量")]
@@ -59,5 +61,11 @@ namespace 进销存demo.Models.Entities
 
         [Display(Name = "小计")]
         public decimal Subtotal => Quantity * UnitPrice;
+
+        [Display(Name = "生产日期")]
+        public DateTime? ProductionDate { get; set; }
+
+        [StringLength(32), Display(Name = "批次号")]
+        public string? BatchNo { get; set; }
     }
 }

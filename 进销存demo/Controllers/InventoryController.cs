@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using 进销存demo.Data;
 using 进销存demo.Models;
 using 进销存demo.Models.Entities;
 using 进销存demo.Models.Identity;
+using 进销存demo.Models.Options;
 using 进销存demo.Models.Queries;
 using 进销存demo.Services;
 
@@ -15,11 +17,22 @@ namespace 进销存demo.Controllers
     {
         private readonly AppDbContext _db;
         private readonly IInventoryService _inventory;
+        private readonly IBatchInventoryService _batch;
+        private readonly PagingOptions _paging;
 
-        public InventoryController(AppDbContext db, IInventoryService inventory)
+        public InventoryController(AppDbContext db, IInventoryService inventory, IBatchInventoryService batch, IOptions<JxcOptions> jxc)
         {
             _db = db;
             _inventory = inventory;
+            _batch = batch;
+            _paging = jxc.Value.Paging;
+        }
+
+        public async Task<IActionResult> Expiring()
+        {
+            var list = await _batch.ListExpiringAsync(30);
+            ViewBag.Count = list.Count;
+            return View(list);
         }
 
         public async Task<IActionResult> Index([FromQuery] ProductQuery q)
@@ -35,7 +48,7 @@ namespace 进销存demo.Controllers
             if (q.OnlyWarning == true)
                 query = query.Where(p => p.Stock <= p.SafetyStock);
 
-            var paged = await PagedList<Product>.CreateAsync(query.OrderBy(p => p.Code), q.Page, q.PageSize);
+            var paged = await PagedList<Product>.CreateAsync(query.OrderBy(p => p.Code), q.Page, q.PageSize, _paging);
 
             ViewBag.Query = q;
             ViewBag.Categories = await _db.ProductCategories.OrderBy(c => c.Name).ToListAsync();
@@ -63,7 +76,7 @@ namespace 进销存demo.Controllers
             }
 
             var paged = await PagedList<StockTransaction>.CreateAsync(
-                query.OrderByDescending(t => t.Id), q.Page, q.PageSize);
+                query.OrderByDescending(t => t.Id), q.Page, q.PageSize, _paging);
 
             ViewBag.Query = q;
             ViewBag.Products = await _db.Products.OrderBy(p => p.Code).ToListAsync();

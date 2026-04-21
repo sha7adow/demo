@@ -1,0 +1,106 @@
+@model IReadOnlyList<Receivable>
+@using 进销存demo.Models.Entities
+@{
+    ViewData["Title"] = "应收账款";
+    var customers = ViewBag.Customers as List<Customer> ?? new();
+    int? cid = ViewBag.CustomerId as int?;
+    ReceivableStatus? st = ViewBag.Status as ReceivableStatus?;
+    string StatusText(ReceivableStatus s) => s switch
+    {
+        ReceivableStatus.Outstanding => "未结清",
+        ReceivableStatus.Paid => "已结清",
+        ReceivableStatus.WrittenOff => "已核销",
+        _ => s.ToString()
+    };
+}
+
+<h3 class="mb-3">应收账款</h3>
+
+<div class="card card-body mb-3">
+    <h6 class="text-muted">账龄汇总（未结清）</h6>
+    <div class="row small">
+        <div class="col-6 col-md">未到期：<strong>¥ @(((decimal)ViewBag.AgingCurrent).ToString("N2"))</strong></div>
+        <div class="col-6 col-md">逾期 1–30 天：<strong>¥ @(((decimal)ViewBag.Aging0_30).ToString("N2"))</strong></div>
+        <div class="col-6 col-md">逾期 31–60 天：<strong>¥ @(((decimal)ViewBag.Aging31_60).ToString("N2"))</strong></div>
+        <div class="col-6 col-md">逾期 61–90 天：<strong>¥ @(((decimal)ViewBag.Aging61_90).ToString("N2"))</strong></div>
+        <div class="col-6 col-md">逾期 90 天以上：<strong>¥ @(((decimal)ViewBag.Aging90Plus).ToString("N2"))</strong></div>
+    </div>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select name="customerId" class="form-select">
+            <option value="">全部客户</option>
+            @foreach (var c in customers)
+            {
+                if (cid == c.Id)
+                {
+                    <option value="@c.Id" selected>@c.Name</option>
+                }
+                else
+                {
+                    <option value="@c.Id">@c.Name</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <select name="status" class="form-select">
+            <option value="">全部状态</option>
+            @foreach (ReceivableStatus s in Enum.GetValues<ReceivableStatus>())
+            {
+                if (st == s)
+                {
+                    <option value="@((int)s)" selected>@StatusText(s)</option>
+                }
+                else
+                {
+                    <option value="@((int)s)">@StatusText(s)</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary">筛选</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">重置</a>
+    </div>
+</form>
+
+<div class="table-responsive">
+<table class="table table-sm table-hover align-middle bg-white jxc-table-wide">
+    <thead class="table-light">
+        <tr>
+            <th>应收单号</th>
+            <th>客户</th>
+            <th>销售单</th>
+            <th class="text-end">应收</th>
+            <th class="text-end">已收</th>
+            <th class="text-end">余额</th>
+            <th>到期日</th>
+            <th>状态</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var r in Model)
+    {
+        var overdue = r.Status == ReceivableStatus.Outstanding && r.DueDate.Date < DateTime.Today;
+        <tr class="@(overdue ? "table-warning" : "")">
+            <td>@r.OrderNo</td>
+            <td>@r.Customer?.Name</td>
+            <td><a asp-controller="Sales" asp-action="Details" asp-route-id="@r.SaleOrderId">@r.SaleOrder?.OrderNo</a></td>
+            <td class="text-end">@r.Amount.ToString("N2")</td>
+            <td class="text-end">@r.Paid.ToString("N2")</td>
+            <td class="text-end">@r.Balance.ToString("N2")</td>
+            <td>@r.DueDate.ToString("yyyy-MM-dd")</td>
+            <td>@StatusText(r.Status)</td>
+            <td><a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@r.Id">详情</a></td>
+        </tr>
+    }
+    @if (Model.Count == 0)
+    {
+        <tr><td colspan="9" class="text-center text-muted py-4">暂无数据</td></tr>
+    }
+    </tbody>
+</table>
+</div>

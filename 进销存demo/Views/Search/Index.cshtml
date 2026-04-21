@@ -1,0 +1,90 @@
+@model SearchResult
+@using 进销存demo.Models.Identity
+@{ ViewData["Title"] = "搜索"; }
+
+<h3 class="mb-3">搜索@if (!string.IsNullOrWhiteSpace(Model.Query)) {<text>：「@Model.Query」</text>}</h3>
+
+@if (string.IsNullOrWhiteSpace(Model.Query) || Model.Query.Trim().Length < 2)
+{
+    <p class="text-muted">请输入至少 2 个字符。</p>
+}
+else
+{
+    <div class="mb-4">
+        <h5>商品</h5>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle bg-white jxc-table-wide">
+                <thead class="table-light"><tr><th>编码</th><th>名称</th><th>分类</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var p in Model.Products)
+                {
+                    <tr>
+                        <td>@p.Code</td>
+                        <td>@p.Name</td>
+                        <td>@p.Category?.Name</td>
+                        <td><a class="btn btn-sm btn-outline-primary" asp-controller="Products" asp-action="Edit" asp-route-id="@p.Id">编辑</a></td>
+                    </tr>
+                }
+                @if (Model.Products.Count == 0)
+                {
+                    <tr><td colspan="4" class="text-muted text-center py-3">无匹配商品</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Purchaser))
+    {
+        <div class="mb-4">
+            <h5>采购单</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle bg-white jxc-table-wide">
+                    <thead class="table-light"><tr><th>单号</th><th>日期</th><th>状态</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var o in Model.Purchases)
+                    {
+                        <tr>
+                            <td>@o.OrderNo</td>
+                            <td>@o.OrderDate.ToString("yyyy-MM-dd")</td>
+                            <td>@o.Status</td>
+                            <td><a class="btn btn-sm btn-outline-primary" asp-controller="Purchases" asp-action="Details" asp-route-id="@o.Id">详情</a></td>
+                        </tr>
+                    }
+                    @if (Model.Purchases.Count == 0)
+                    {
+                        <tr><td colspan="4" class="text-muted text-center py-3">无匹配采购单</td></tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Salesperson))
+    {
+        <div class="mb-4">
+            <h5>销售单</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle bg-white jxc-table-wide">
+                    <thead class="table-light"><tr><th>单号</th><th>日期</th><th>状态</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var o in Model.Sales)
+                    {
+                        <tr>
+                            <td>@o.OrderNo</td>
+                            <td>@o.OrderDate.ToString("yyyy-MM-dd")</td>
+                            <td>@o.Status</td>
+                            <td><a class="btn btn-sm btn-outline-primary" asp-controller="Sales" asp-action="Details" asp-route-id="@o.Id">详情</a></td>
+                        </tr>
+                    }
+                    @if (Model.Sales.Count == 0)
+                    {
+                        <tr><td colspan="4" class="text-muted text-center py-3">无匹配销售单</td></tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}

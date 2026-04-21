@@ -41,5 +41,38 @@ namespace 进销存demo.Services
             await _db.SaveChangesAsync(ct);
             return $"{prefix}{day}-{value:D4}";
         }
+
+        public async Task SyncAfterManualOrderNoAsync(string orderNo, string prefix, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(orderNo) || string.IsNullOrWhiteSpace(prefix)) return;
+            if (!orderNo.StartsWith(prefix, StringComparison.Ordinal)) return;
+            var tail = orderNo[prefix.Length..];
+            if (tail.Length < 14) return;
+            var dayPart = tail[..8];
+            if (dayPart.Length != 8 || !dayPart.All(char.IsDigit)) return;
+            if (tail[8] != '-') return;
+            var seqPart = tail[9..];
+            if (!int.TryParse(seqPart, out var seqVal) || seqVal < 1) return;
+
+            var scope = $"{prefix}-{dayPart}";
+            var nextNeeded = seqVal + 1;
+            var row = await _db.SequenceNumbers.FirstOrDefaultAsync(s => s.Scope == scope, ct);
+            if (row == null)
+            {
+                _db.SequenceNumbers.Add(new SequenceNumber
+                {
+                    Scope = scope,
+                    NextValue = nextNeeded,
+                    UpdatedAt = DateTime.Now
+                });
+            }
+            else if (row.NextValue <= seqVal)
+            {
+                row.NextValue = nextNeeded;
+                row.UpdatedAt = DateTime.Now;
+            }
+
+            await _db.SaveChangesAsync(ct);
+        }
     }
 }

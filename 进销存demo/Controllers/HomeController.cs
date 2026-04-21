@@ -50,7 +50,7 @@ namespace 进销存demo.Controllers
                 LowStockTop = await _db.Products
                     .Where(p => p.Stock <= p.SafetyStock)
                     .OrderBy(p => p.Stock)
-                    .Take(8)
+                    .Take(10)
                     .ToListAsync(),
 
                 RecentTransactions = await _db.StockTransactions
@@ -59,6 +59,24 @@ namespace 进销存demo.Controllers
                     .Take(10)
                     .ToListAsync()
             };
+
+            var end30 = today.AddDays(30);
+            vm.ExpiringBatchCount30 = await _db.ProductBatches.CountAsync(b =>
+                b.RemainingQty > 0 && b.ExpiryDate.Date > today && b.ExpiryDate.Date <= end30);
+
+            var outstandingRecv = await _db.Receivables
+                .Include(r => r.Customer)
+                .Where(r => r.Status == ReceivableStatus.Outstanding)
+                .ToListAsync();
+            vm.OverdueReceivableAmount = outstandingRecv
+                .Where(r => r.DueDate.Date < today)
+                .Sum(r => r.Amount - r.Paid);
+            vm.ReceivableTop5 = outstandingRecv
+                .GroupBy(r => r.Customer!.Name)
+                .Select(g => (g.Key, g.Sum(x => x.Amount - x.Paid)))
+                .OrderByDescending(x => x.Item2)
+                .Take(5)
+                .ToList();
 
             return View(vm);
         }

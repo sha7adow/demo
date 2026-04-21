@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using 进销存demo.Models.Validation;
 
 namespace 进销存demo.Models.Entities
 {
@@ -22,9 +23,12 @@ namespace 进销存demo.Models.Entities
         public int? CategoryId { get; set; }
         public ProductCategory? Category { get; set; }
 
+        [Range(typeof(decimal), "0", "999999.99", ErrorMessage = "采购价须在 0～999999.99 之间")]
         [Display(Name = "采购价")]
         public decimal PurchasePrice { get; set; }
 
+        [Range(typeof(decimal), "0", "999999.99", ErrorMessage = "销售价须在 0～999999.99 之间")]
+        [CompareGreaterThanOrEqual(nameof(PurchasePrice), ErrorMessage = "销售价不能低于采购价")]
         [Display(Name = "销售价")]
         public decimal SalePrice { get; set; }
 
@@ -39,6 +43,12 @@ namespace 进销存demo.Models.Entities
 
         [StringLength(200), Display(Name = "备注")]
         public string? Remark { get; set; }
+
+        [Display(Name = "保质期(天)")]
+        public int ShelfLifeDays { get; set; } = 365;
+
+        [Display(Name = "启用批次/效期")]
+        public bool TrackBatch { get; set; }
 
         // 乐观锁（SQLite 下 [Timestamp] 不被原生支持，用一个长整型 + IsRowVersion 代替，见 AppDbContext）
         [Display(Name = "版本")]

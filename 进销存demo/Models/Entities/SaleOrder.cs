@@ -10,7 +10,7 @@ namespace 进销存demo.Models.Entities
         public string OrderNo { get; set; } = string.Empty;
 
         [Display(Name = "客户")]
-        public int CustomerId { get; set; }
+        public int? CustomerId { get; set; }
         public Customer? Customer { get; set; }
 
         [Display(Name = "下单日期")]
@@ -37,6 +37,8 @@ namespace 进销存demo.Models.Entities
         [Display(Name = "退货时间")]
         public DateTime? ReturnedAt { get; set; }
 
+        public Receivable? Receivable { get; set; }
+
         public List<SaleOrderItem> Items { get; set; } = new();
     }
 
@@ -48,7 +50,7 @@ namespace 进销存demo.Models.Entities
         public SaleOrder? SaleOrder { get; set; }
 
         [Display(Name = "商品")]
-        public int ProductId { get; set; }
+        public int? ProductId { get; set; }
         public Product? Product { get; set; }
 
         [Display(Name = "数量")]
@@ -59,5 +61,9 @@ namespace 进销存demo.Models.Entities
 
         [Display(Name = "小计")]
         public decimal Subtotal => Quantity * UnitPrice;
+
+        /// <summary>销售出库 FIFO 消耗记录（JSON：BatchId + Qty 数组，供退货按原批回补）。</summary>
+        [StringLength(2000)]
+        public string? ConsumedFromBatches { get; set; }
     }
 }

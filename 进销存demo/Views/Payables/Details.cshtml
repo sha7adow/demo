@@ -1,0 +1,98 @@
+@model Payable
+@using 进销存demo.Models.Entities
+@{
+    ViewData["Title"] = "应付详情";
+    string StatusText(PayableStatus s) => s switch
+    {
+        PayableStatus.Outstanding => "未结清",
+        PayableStatus.Paid => "已结清",
+        PayableStatus.WrittenOff => "已核销",
+        _ => s.ToString()
+    };
+    string MethodText(PaymentMethod m) => m switch
+    {
+        PaymentMethod.Cash => "现金",
+        PaymentMethod.Bank => "银行转账",
+        PaymentMethod.Alipay => "支付宝",
+        PaymentMethod.WeChat => "微信",
+        PaymentMethod.Other => "其他",
+        _ => m.ToString()
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>应付 @Model.OrderNo</h3>
+    <a class="btn btn-secondary" asp-action="Index">返回列表</a>
+</div>
+
+<div class="card card-body mb-3">
+    <div class="row">
+        <div class="col-md-3"><strong>供应商：</strong>@Model.Supplier?.Name</div>
+        <div class="col-md-3"><strong>采购单：</strong><a asp-controller="Purchases" asp-action="Details" asp-route-id="@Model.PurchaseOrderId">@Model.PurchaseOrder?.OrderNo</a></div>
+        <div class="col-md-3"><strong>状态：</strong>@StatusText(Model.Status)</div>
+        <div class="col-md-3"><strong>到期日：</strong>@Model.DueDate.ToString("yyyy-MM-dd")</div>
+        <div class="col-md-3 mt-2"><strong>应付：</strong>¥ @Model.Amount.ToString("N2")</div>
+        <div class="col-md-3 mt-2"><strong>已付：</strong>¥ @Model.Paid.ToString("N2")</div>
+        <div class="col-md-3 mt-2"><strong>余额：</strong>¥ @Model.Balance.ToString("N2")</div>
+    </div>
+</div>
+
+<h5>付款流水</h5>
+<div class="table-responsive">
+<table class="table table-sm bg-white mb-4 jxc-table-wide">
+    <thead class="table-light">
+        <tr><th>流水号</th><th class="text-end">金额</th><th>付款日</th><th>方式</th><th>备注</th></tr>
+    </thead>
+    <tbody>
+    @foreach (var x in Model.Vouchers.OrderByDescending(x => x.Id))
+    {
+        <tr>
+            <td>@x.OrderNo</td>
+            <td class="text-end">@x.Amount.ToString("N2")</td>
+            <td>@x.PaidDate.ToString("yyyy-MM-dd")</td>
+            <td>@MethodText(x.Method)</td>
+            <td><small class="text-muted">@x.Remark</small></td>
+        </tr>
+    }
+    @if (Model.Vouchers.Count == 0)
+    {
+        <tr><td colspan="5" class="text-muted text-center py-3">暂无付款记录</td></tr>
+    }
+    </tbody>
+</table>
+</div>
+
+@if (Model.Status == PayableStatus.Outstanding && Model.Balance > 0)
+{
+    <h5>登记付款</h5>
+    <form method="post" asp-action="Pay" asp-route-id="@Model.Id" class="card card-body">
+        @Html.AntiForgeryToken()
+        <div class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">金额</label>
+                <input type="number" name="amount" class="form-control" step="0.01" min="0.01" max="@Model.Balance.ToString(System.Globalization.CultureInfo.InvariantCulture)" value="@Model.Balance.ToString(System.Globalization.CultureInfo.InvariantCulture)" required />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">方式</label>
+                <select name="method" class="form-select">
+                    @foreach (PaymentMethod pm in Enum.GetValues<PaymentMethod>())
+                    {
+                        <option value="@((int)pm)">@MethodText(pm)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">付款日</label>
+                <input type="date" name="paidDate" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">备注</label>
+                <input type="text" name="remark" class="form-control" maxlength="200" />
+            </div>
+            <div class="col-12 col-md-auto">
+                <button type="submit" class="btn btn-primary">确认付款</button>
+            </div>
+        </div>
+        <div class="form-text">最多可付 ¥ @Model.Balance.ToString("N2")。</div>
+    </form>
+}

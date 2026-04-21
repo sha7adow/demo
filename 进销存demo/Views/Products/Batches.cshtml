@@ -1,0 +1,52 @@
+@model IReadOnlyList<ProductBatch>
+@using 进销存demo.Models.Entities
+@{
+    ViewData["Title"] = "商品批次";
+    var p = ViewBag.Product as Product;
+}
+@if (p != null)
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>批次：@p.Code @p.Name</h3>
+        <a class="btn btn-secondary" asp-action="Edit" asp-route-id="@p.Id">返回编辑</a>
+    </div>
+    <p class="text-muted small">按到期日排序。已过期或剩余为 0 的批次仍保留溯源。</p>
+}
+
+<div class="table-responsive">
+<table class="table table-sm table-hover align-middle bg-white jxc-table-wide">
+    <thead class="table-light">
+        <tr>
+            <th>批次号</th>
+            <th class="text-end">初始数量</th>
+            <th class="text-end">剩余</th>
+            <th>生产日期</th>
+            <th>到期日</th>
+            <th class="text-end">入库单价</th>
+        </tr>
+    </thead>
+    <tbody>
+    @{
+        var today = DateTime.Today;
+    }
+    @foreach (var b in Model)
+    {
+        var expired = b.ExpiryDate.Date < today;
+        var soon = !expired && b.ExpiryDate.Date <= today.AddDays(30) && b.RemainingQty > 0;
+        var rowCls = expired ? "table-danger" : soon ? "table-warning" : "";
+        <tr class="@rowCls">
+            <td>@b.BatchNo</td>
+            <td class="text-end">@b.InitialQty</td>
+            <td class="text-end">@b.RemainingQty</td>
+            <td>@b.ProductionDate.ToString("yyyy-MM-dd")</td>
+            <td>@b.ExpiryDate.ToString("yyyy-MM-dd") @(expired ? "（已过期）" : soon ? "（临期）" : "")</td>
+            <td class="text-end">@b.UnitCost.ToString("N2")</td>
+        </tr>
+    }
+    @if (Model.Count == 0)
+    {
+        <tr><td colspan="6" class="text-center text-muted py-4">暂无批次记录</td></tr>
+    }
+    </tbody>
+</table>
+</div>

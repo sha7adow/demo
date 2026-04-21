@@ -1,13 +1,45 @@
 @model IReadOnlyList<Customer>
+@using 进销存demo.Models.Identity
 @{
     ViewData["Title"] = "客户";
     var q = ViewBag.Query as CustomerQuery ?? new CustomerQuery();
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>客户</h3>
-    <a class="btn btn-primary" asp-action="Create">+ 新增客户</a>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h3 class="mb-0">客户</h3>
+    <div class="d-flex flex-wrap gap-2">
+        @if (User.IsInRole(Roles.Admin))
+        {
+            <a class="btn btn-outline-success" asp-action="ExportExcel">导出 Excel</a>
+            <a class="btn btn-outline-secondary" asp-action="DownloadImportTemplate">下载导入模板</a>
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importCustomerModal">导入 Excel</button>
+        }
+        <a class="btn btn-primary" asp-action="Create">+ 新增客户</a>
+    </div>
 </div>
+
+@if (User.IsInRole(Roles.Admin))
+{
+    <div class="modal fade" id="importCustomerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form asp-action="ImportExcel" method="post" enctype="multipart/form-data" class="modal-content">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">导入客户 Excel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted">表头须与模板一致；单文件不超过 2MB；名称已存在的行将跳过。</p>
+                    <input type="file" name="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="form-control" required />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">上传导入</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
 
 <form method="get" class="row g-2 mb-3">
     <div class="col-auto">
@@ -19,15 +51,16 @@
     </div>
 </form>
 
-<table class="table table-hover table-sm align-middle bg-white">
+<div class="table-responsive">
+<table class="table table-hover table-sm align-middle bg-white jxc-table-wide">
     <thead class="table-light">
-        <tr><th>名称</th><th>联系人</th><th>电话</th><th>地址</th><th>备注</th><th style="width:160px">操作</th></tr>
+        <tr><th>名称</th><th>联系人</th><th>电话</th><th>账期(天)</th><th>地址</th><th>备注</th><th style="width:160px">操作</th></tr>
     </thead>
     <tbody>
     @foreach (var c in Model)
     {
         <tr>
-            <td>@c.Name</td><td>@c.Contact</td><td>@c.Phone</td><td>@c.Address</td><td>@c.Remark</td>
+            <td>@c.Name</td><td>@c.Contact</td><td>@c.Phone</td><td>@c.PaymentTermDays</td><td>@c.Address</td><td>@c.Remark</td>
             <td>
                 <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@c.Id">编辑</a>
                 <form method="post" asp-action="Delete" asp-route-id="@c.Id" class="d-inline" onsubmit="return confirm('确认删除？')">
@@ -37,8 +70,9 @@
             </td>
         </tr>
     }
-    @if (!Model.Any()) { <tr><td colspan="6" class="text-center text-muted py-4">暂无数据</td></tr> }
+    @if (!Model.Any()) { <tr><td colspan="7" class="text-center text-muted py-4">暂无数据</td></tr> }
     </tbody>
 </table>
+</div>
 
 @await Html.PartialAsync("_Pager")

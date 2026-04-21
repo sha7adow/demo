@@ -22,6 +22,11 @@ namespace 进销存demo.Data
         public DbSet<Stocktake> Stocktakes => Set<Stocktake>();
         public DbSet<StocktakeItem> StocktakeItems => Set<StocktakeItem>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+        public DbSet<ProductBatch> ProductBatches => Set<ProductBatch>();
+        public DbSet<Receivable> Receivables => Set<Receivable>();
+        public DbSet<PaymentReceipt> PaymentReceipts => Set<PaymentReceipt>();
+        public DbSet<Payable> Payables => Set<Payable>();
+        public DbSet<PaymentVoucher> PaymentVouchers => Set<PaymentVoucher>();
 
         protected override void OnModelCreating(ModelBuilder b)
         {
@@ -50,6 +55,67 @@ namespace 进销存demo.Data
                 .HasIndex(x => new { x.EntityType, x.EntityKey });
             b.Entity<AuditLog>()
                 .HasIndex(x => x.CreatedAt);
+
+            b.Entity<ProductBatch>()
+                .HasIndex(x => new { x.ProductId, x.BatchNo })
+                .IsUnique();
+            b.Entity<ProductBatch>()
+                .HasOne(x => x.Product)
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+            b.Entity<ProductBatch>()
+                .HasOne(x => x.PurchaseOrderItem)
+                .WithMany()
+                .HasForeignKey(x => x.PurchaseOrderItemId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.Entity<StockTransaction>()
+                .HasOne(x => x.Batch)
+                .WithMany()
+                .HasForeignKey(x => x.BatchId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.Entity<Receivable>()
+                .HasIndex(x => x.SaleOrderId)
+                .IsUnique();
+            b.Entity<Receivable>()
+                .HasOne(r => r.SaleOrder)
+                .WithOne(s => s.Receivable)
+                .HasForeignKey<Receivable>(r => r.SaleOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.Entity<Receivable>()
+                .HasOne(r => r.Customer)
+                .WithMany()
+                .HasForeignKey(r => r.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+            b.Entity<PaymentReceipt>()
+                .HasOne(x => x.Receivable)
+                .WithMany(r => r.Receipts)
+                .HasForeignKey(x => x.ReceivableId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.Entity<Payable>()
+                .HasIndex(x => x.PurchaseOrderId)
+                .IsUnique();
+            b.Entity<Payable>()
+                .HasOne(p => p.PurchaseOrder)
+                .WithOne(o => o.Payable)
+                .HasForeignKey<Payable>(p => p.PurchaseOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.Entity<Payable>()
+                .HasOne(p => p.Supplier)
+                .WithMany()
+                .HasForeignKey(p => p.SupplierId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+            b.Entity<PaymentVoucher>()
+                .HasOne(x => x.Payable)
+                .WithMany(p => p.Vouchers)
+                .HasForeignKey(x => x.PayableId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // ---------- decimal 精度 ----------
             foreach (var prop in b.Model.GetEntityTypes()
@@ -84,6 +150,44 @@ namespace 进销存demo.Data
                 .WithMany()
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // 软删主体被全局过滤时，依赖外键的导航改为可选，消除 Model.Validation[10622] 警告
+            b.Entity<PurchaseOrder>()
+                .HasOne(o => o.Supplier)
+                .WithMany()
+                .HasForeignKey(o => o.SupplierId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+            b.Entity<SaleOrder>()
+                .HasOne(o => o.Customer)
+                .WithMany()
+                .HasForeignKey(o => o.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+            b.Entity<PurchaseOrderItem>()
+                .HasOne(i => i.Product)
+                .WithMany()
+                .HasForeignKey(i => i.ProductId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+            b.Entity<SaleOrderItem>()
+                .HasOne(i => i.Product)
+                .WithMany()
+                .HasForeignKey(i => i.ProductId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+            b.Entity<StockTransaction>()
+                .HasOne(t => t.Product)
+                .WithMany()
+                .HasForeignKey(t => t.ProductId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+            b.Entity<StocktakeItem>()
+                .HasOne(i => i.Product)
+                .WithMany()
+                .HasForeignKey(i => i.ProductId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
 
             // ---------- 乐观锁 ----------
             b.Entity<Product>()

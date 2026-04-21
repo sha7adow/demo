@@ -39,7 +39,7 @@ namespace 进销存demo.Models.Entities
         public int StocktakeId { get; set; }
         public Stocktake? Stocktake { get; set; }
 
-        public int ProductId { get; set; }
+        public int? ProductId { get; set; }
         public Product? Product { get; set; }
 
         /// <summary>草稿生成时快照的系统库存</summary>

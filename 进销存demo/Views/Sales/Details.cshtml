@@ -20,7 +20,7 @@
     };
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 jxc-detail-actions">
     <h3>销售单 @Model.OrderNo <span class="badge @badge ms-2">@statusText</span></h3>
     <div>
         @if (Model.Status == OrderStatus.Draft)
@@ -42,6 +42,7 @@
         {
             <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#returnModal">销售退货</button>
         }
+        <a class="btn btn-outline-secondary" asp-action="Print" asp-route-id="@Model.Id" target="_blank" rel="noopener">打印 PDF</a>
         <a class="btn btn-secondary" asp-action="Index">返回</a>
     </div>
 </div>
@@ -64,7 +65,8 @@
     </div>
 </div>
 
-<table class="table table-sm bg-white">
+<div class="table-responsive">
+<table class="table table-sm bg-white jxc-table-wide">
     <thead class="table-light">
         <tr><th>商品</th><th class="text-end">数量</th><th class="text-end">单价</th><th class="text-end">小计</th></tr>
     </thead>
@@ -83,6 +85,7 @@
         <tr><th colspan="3" class="text-end">合计</th><th class="text-end">@Model.TotalAmount.ToString("0.00")</th></tr>
     </tfoot>
 </table>
+</div>
 
 @if (Model.Status == OrderStatus.Confirmed)
 {

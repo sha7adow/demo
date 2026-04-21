@@ -7,7 +7,13 @@ namespace 进销存demo.Services
     public class InventoryService : IInventoryService
     {
         private readonly AppDbContext _db;
-        public InventoryService(AppDbContext db) { _db = db; }
+        private readonly IBatchInventoryService _batch;
+
+        public InventoryService(AppDbContext db, IBatchInventoryService batch)
+        {
+            _db = db;
+            _batch = batch;
+        }
 
         public async Task ApplyStockChangeAsync(
             int productId,
@@ -48,21 +54,63 @@ namespace 进销存demo.Services
             await using var tx = await _db.Database.BeginTransactionAsync(ct);
             try
             {
-                await ApplyStockChangeAsync(
-                    productId,
-                    quantityDelta,
-                    StockChangeType.Adjust,
-                    refNo: null,
-                    remark: string.IsNullOrWhiteSpace(remark) ? "手工调整" : remark,
-                    ct);
+                var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == productId, ct)
+                    ?? throw new InvalidOperationException("商品不存在");
 
-                await _db.SaveChangesAsync(ct);
+                if (product.TrackBatch)
+                {
+                    if (quantityDelta > 0)
+                    {
+                        var pd = DateTime.Today;
+                        var shelf = product.ShelfLifeDays <= 0 ? 365 : product.ShelfLifeDays;
+                        var exp = pd.AddDays(shelf);
+                        var refNo = $"ADJ-{productId}-{DateTime.Now:yyyyMMddHHmmss}";
+                        await _batch.ReceiveAsync(
+                            productId,
+                            quantityDelta,
+                            product.PurchasePrice,
+                            batchNo: null,
+                            pd,
+                            exp,
+                            refNo,
+                            purchaseOrderItemId: null,
+                            StockChangeType.Adjust,
+                            ct);
+                    }
+                    else
+                    {
+                        await _batch.IssueFifoAsync(
+                            productId,
+                            -quantityDelta,
+                            refNo: null,
+                            string.IsNullOrWhiteSpace(remark) ? "手工调整" : remark,
+                            ct);
+                    }
+                }
+                else
+                {
+                    await ApplyStockChangeAsync(
+                        productId,
+                        quantityDelta,
+                        StockChangeType.Adjust,
+                        refNo: null,
+                        remark: string.IsNullOrWhiteSpace(remark) ? "手工调整" : remark,
+                        ct);
+
+                    await _db.SaveChangesAsync(ct);
+                }
+
                 await tx.CommitAsync(ct);
             }
             catch (DbUpdateConcurrencyException)
             {
                 await tx.RollbackAsync(ct);
                 throw new InvalidOperationException("该商品正被其他操作修改，请刷新后重试");
+            }
+            catch
+            {
+                await tx.RollbackAsync(ct);
+                throw;
             }
         }
     }

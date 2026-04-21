@@ -1,12 +1,18 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
 using 进销存demo.Data;
+using 进销存demo.Filters;
+using 进销存demo.Models.Entities;
 using 进销存demo.Models.Identity;
 using 进销存demo.Models.Options;
 using 进销存demo.Services;
+using QuestPDF.Infrastructure;
 
 // ---------- Serilog：启动前最早可用 ----------
 Log.Logger = new LoggerConfiguration()
@@ -28,6 +34,8 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
+    QuestPDF.Settings.License = LicenseType.Community;
+
     // 用 Serilog 替换默认日志提供者，同时读取 appsettings.json 的 Serilog 节点
     builder.Host.UseSerilog((ctx, services, cfg) => cfg
         .ReadFrom.Configuration(ctx.Configuration)
@@ -42,9 +50,21 @@ try
 
     // ---------- Options ----------
     builder.Services.Configure<JxcOptions>(builder.Configuration.GetSection(JxcOptions.SectionName));
+    builder.Services.Configure<FormOptions>(o =>
+    {
+        o.MultipartBodyLengthLimit = 2_000_000;
+    });
+
+    var dpPath = Path.Combine(builder.Environment.ContentRootPath, "data", "dp-keys");
+    Directory.CreateDirectory(dpPath);
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(dpPath))
+        .SetApplicationName("JxcDemo");
 
     // ---------- MVC ----------
-    builder.Services.AddControllersWithViews();
+    builder.Services.AddScoped<PopulatePagingDefaultsFilter>();
+    builder.Services.AddControllersWithViews(o =>
+        o.Filters.AddService<PopulatePagingDefaultsFilter>());
     builder.Services.AddHttpContextAccessor();
 
     // ---------- EF Core + SQLite ----------
@@ -91,13 +111,48 @@ try
     });
 
     // ---------- 业务服务 ----------
+    builder.Services.AddScoped<IBatchInventoryService, BatchInventoryService>();
     builder.Services.AddScoped<IInventoryService, InventoryService>();
+    builder.Services.AddScoped<IExcelService, ExcelService>();
+    builder.Services.AddScoped<IPdfService, PdfService>();
     builder.Services.AddScoped<IOrderNoGenerator, OrderNoGenerator>();
     builder.Services.AddScoped<IPurchaseService, PurchaseService>();
     builder.Services.AddScoped<ISaleService, SaleService>();
     builder.Services.AddScoped<IStocktakeService, StocktakeService>();
 
     var app = builder.Build();
+
+    // 静态导入模板（首次启动写入 wwwroot/templates/products-template.xlsx）
+    try
+    {
+        using var tplScope = app.Services.CreateScope();
+        var env = tplScope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+        var excel = tplScope.ServiceProvider.GetRequiredService<IExcelService>();
+        var tplDir = Path.Combine(env.WebRootPath, "templates");
+        Directory.CreateDirectory(tplDir);
+        var tplPath = Path.Combine(tplDir, "products-template.xlsx");
+        if (!File.Exists(tplPath))
+        {
+            var cols = new[]
+            {
+                new ColumnSpec<Product>("编码", x => x.Code),
+                new ColumnSpec<Product>("名称", x => x.Name),
+                new ColumnSpec<Product>("单位", x => x.Unit),
+                new ColumnSpec<Product>("采购价", x => x.PurchasePrice),
+                new ColumnSpec<Product>("销售价", x => x.SalePrice),
+                new ColumnSpec<Product>("安全库存", x => x.SafetyStock),
+                new ColumnSpec<Product>("启用批次", x => x.TrackBatch ? 1 : 0),
+                new ColumnSpec<Product>("保质期天", x => x.ShelfLifeDays),
+                new ColumnSpec<Product>("分类", x => x.Category?.Name),
+                new ColumnSpec<Product>("条码", x => x.Barcode),
+            };
+            await File.WriteAllBytesAsync(tplPath, excel.Export(Array.Empty<Product>(), "商品", cols));
+        }
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "写入商品导入模板失败，可继续使用「下载导入模板」链接");
+    }
 
     // ---------- 启动：迁移 + 种子 ----------
     using (var scope = app.Services.CreateScope())
@@ -138,6 +193,7 @@ try
     app.MapControllerRoute(
         name: "default",
         pattern: "{controller=Home}/{action=Index}/{id?}");
+    app.MapControllers();
 
     app.Run();
 }

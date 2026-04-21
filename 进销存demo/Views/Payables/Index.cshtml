@@ -1,0 +1,95 @@
+@model IReadOnlyList<Payable>
+@using 进销存demo.Models.Entities
+@{
+    ViewData["Title"] = "应付账款";
+    var suppliers = ViewBag.Suppliers as List<Supplier> ?? new();
+    int? sid = ViewBag.SupplierId as int?;
+    PayableStatus? st = ViewBag.Status as PayableStatus?;
+    string StatusText(PayableStatus s) => s switch
+    {
+        PayableStatus.Outstanding => "未结清",
+        PayableStatus.Paid => "已结清",
+        PayableStatus.WrittenOff => "已核销",
+        _ => s.ToString()
+    };
+}
+
+<h3 class="mb-3">应付账款</h3>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select name="supplierId" class="form-select">
+            <option value="">全部供应商</option>
+            @foreach (var s in suppliers)
+            {
+                if (sid == s.Id)
+                {
+                    <option value="@s.Id" selected>@s.Name</option>
+                }
+                else
+                {
+                    <option value="@s.Id">@s.Name</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <select name="status" class="form-select">
+            <option value="">全部状态</option>
+            @foreach (PayableStatus s in Enum.GetValues<PayableStatus>())
+            {
+                if (st == s)
+                {
+                    <option value="@((int)s)" selected>@StatusText(s)</option>
+                }
+                else
+                {
+                    <option value="@((int)s)">@StatusText(s)</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary">筛选</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">重置</a>
+    </div>
+</form>
+
+<div class="table-responsive">
+<table class="table table-sm table-hover align-middle bg-white jxc-table-wide">
+    <thead class="table-light">
+        <tr>
+            <th>应付单号</th>
+            <th>供应商</th>
+            <th>采购单</th>
+            <th class="text-end">应付</th>
+            <th class="text-end">已付</th>
+            <th class="text-end">余额</th>
+            <th>到期日</th>
+            <th>状态</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var p in Model)
+    {
+        var overdue = p.Status == PayableStatus.Outstanding && p.DueDate.Date < DateTime.Today;
+        <tr class="@(overdue ? "table-warning" : "")">
+            <td>@p.OrderNo</td>
+            <td>@p.Supplier?.Name</td>
+            <td><a asp-controller="Purchases" asp-action="Details" asp-route-id="@p.PurchaseOrderId">@p.PurchaseOrder?.OrderNo</a></td>
+            <td class="text-end">@p.Amount.ToString("N2")</td>
+            <td class="text-end">@p.Paid.ToString("N2")</td>
+            <td class="text-end">@p.Balance.ToString("N2")</td>
+            <td>@p.DueDate.ToString("yyyy-MM-dd")</td>
+            <td>@StatusText(p.Status)</td>
+            <td><a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@p.Id">详情</a></td>
+        </tr>
+    }
+    @if (Model.Count == 0)
+    {
+        <tr><td colspan="9" class="text-center text-muted py-4">暂无数据</td></tr>
+    }
+    </tbody>
+</table>
+</div>

@@ -11,15 +11,15 @@
     <div asp-validation-summary="All" class="text-danger"></div>
 
     <div class="row g-3">
-        <div class="col-md-3">
+        <div class="col-md-6">
             <label asp-for="OrderNo" class="form-label"></label>
             <input asp-for="OrderNo" class="form-control" />
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6">
             <label asp-for="OrderDate" class="form-label"></label>
             <input asp-for="OrderDate" class="form-control" type="date" />
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6">
             <label asp-for="SupplierId" class="form-label"></label>
             <select asp-for="SupplierId" class="form-select">
                 <option value="0">-- 请选择 --</option>
@@ -29,7 +29,7 @@
                 }
             </select>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6">
             <label asp-for="Remark" class="form-label"></label>
             <input asp-for="Remark" class="form-control" />
         </div>
@@ -39,21 +39,26 @@
     <h5>明细
         <button type="button" class="btn btn-sm btn-outline-primary float-end" id="btnAdd">+ 添加一行</button>
     </h5>
-    <table class="table table-sm align-middle" id="itemsTable">
+    <p class="text-muted small mb-2">启用批次管理的商品需填写生产日期；批次号可留空，确认入库时按规则自动生成。</p>
+    <div class="table-responsive">
+    <table class="table table-sm align-middle jxc-table-wide" id="itemsTable">
         <thead class="table-light">
             <tr>
-                <th style="width:40%">商品</th>
-                <th style="width:15%">数量</th>
-                <th style="width:15%">单价</th>
-                <th class="text-end" style="width:20%">小计</th>
-                <th style="width:60px"></th>
+                <th style="width:28%">商品</th>
+                <th class="batch-col" style="width:12%">生产日期</th>
+                <th class="batch-col" style="width:14%">批次号（可选）</th>
+                <th style="width:10%">数量</th>
+                <th style="width:10%">单价</th>
+                <th class="text-end" style="width:10%">小计</th>
+                <th style="width:56px"></th>
             </tr>
         </thead>
         <tbody></tbody>
         <tfoot>
-            <tr><th colspan="3" class="text-end">合计</th><th class="text-end" id="grandTotal">0.00</th><th></th></tr>
+            <tr><th colspan="5" class="text-end">合计</th><th class="text-end" id="grandTotal">0.00</th><th></th></tr>
         </tfoot>
     </table>
+    </div>
 
     <div>
         <button type="submit" class="btn btn-primary">保存草稿</button>
@@ -65,12 +70,18 @@
     <tr>
         <td>
             <select name="productIds" class="form-select product-select" required>
-                <option value="0">-- 选择商品 --</option>
+                <option value="0" data-track-batch="false">-- 选择商品 --</option>
                 @foreach (var p in products)
                 {
-                    <option value="@p.Id" data-price="@p.PurchasePrice">@p.Code @p.Name（单位：@p.Unit）</option>
+                    <option value="@p.Id" data-price="@p.PurchasePrice" data-track-batch="@(p.TrackBatch ? "true" : "false")">@p.Code @p.Name（单位：@p.Unit）</option>
                 }
             </select>
+        </td>
+        <td class="batch-cell">
+            <input type="date" name="productionDates" class="form-control form-control-sm production-date" />
+        </td>
+        <td class="batch-cell">
+            <input type="text" name="batchNos" class="form-control form-control-sm batch-no" placeholder="留空自动生成" maxlength="32" />
         </td>
         <td><input name="quantities" type="number" min="1" value="1" class="form-control qty" required /></td>
         <td><input name="unitPrices" type="number" min="0" step="0.01" value="0" class="form-control price" required /></td>
@@ -85,6 +96,17 @@
         (function () {
             const tbody = document.querySelector('#itemsTable tbody');
             const tpl = document.querySelector('#rowTpl');
+            function setBatchRow(tr, show) {
+                tr.querySelectorAll('.batch-cell').forEach(td => {
+                    td.classList.toggle('d-none', !show);
+                });
+            }
+            function updateBatchVisibility(tr) {
+                const sel = tr.querySelector('.product-select');
+                const opt = sel.selectedOptions[0];
+                const track = opt && opt.value !== '0' && opt.dataset.trackBatch === 'true';
+                setBatchRow(tr, track);
+            }
             function recalc() {
                 let total = 0;
                 tbody.querySelectorAll('tr').forEach(tr => {
@@ -101,11 +123,13 @@
                     const opt = e.target.selectedOptions[0];
                     const price = parseFloat(opt.dataset.price || '0');
                     if (!isNaN(price) && price > 0) tr.querySelector('.price').value = price.toFixed(2);
+                    updateBatchVisibility(tr);
                     recalc();
                 });
                 tr.querySelector('.qty').addEventListener('input', recalc);
                 tr.querySelector('.price').addEventListener('input', recalc);
                 tr.querySelector('.btnDel').addEventListener('click', () => { tr.remove(); recalc(); });
+                updateBatchVisibility(tr);
             }
             function addRow() {
                 const node = tpl.content.firstElementChild.cloneNode(true);

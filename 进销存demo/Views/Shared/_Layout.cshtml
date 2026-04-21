@@ -20,6 +20,7 @@
     <title>@ViewData["Title"] - 进销存demo</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/responsive.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/进销存demo.styles.css" asp-append-version="true" />
 </head>
 <body>
@@ -30,7 +31,7 @@
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-md-inline-flex justify-content-between">
+                <div class="navbar-collapse collapse d-md-inline-flex justify-content-between align-items-md-center">
                     <ul class="navbar-nav flex-grow-1">
                         @if (IsAuthed)
                         {
@@ -47,10 +48,25 @@
                                 <li class="nav-item"><a class="nav-link @Active("Sales")" asp-controller="Sales" asp-action="Index">销售</a></li>
                             }
                             <li class="nav-item"><a class="nav-link @Active("Inventory")" asp-controller="Inventory" asp-action="Index">库存</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Inventory" asp-action="Expiring">临期预警</a></li>
                             <li class="nav-item"><a class="nav-link" asp-controller="Inventory" asp-action="Transactions">流水</a></li>
                             <li class="nav-item"><a class="nav-link @Active("Stocktakes")" asp-controller="Stocktakes" asp-action="Index">盘点</a></li>
+                            @if (IsAdmin || IsSales)
+                            {
+                                <li class="nav-item"><a class="nav-link @Active("Receivables")" asp-controller="Receivables" asp-action="Index">应收</a></li>
+                            }
+                            @if (IsAdmin || IsPurchaser)
+                            {
+                                <li class="nav-item"><a class="nav-link @Active("Payables")" asp-controller="Payables" asp-action="Index">应付</a></li>
+                            }
                         }
                     </ul>
+                    @if (IsAuthed)
+                    {
+                        <form class="d-flex align-items-center me-md-3 my-2 my-md-0 order-md-0" asp-controller="Search" asp-action="Index" method="get" role="search">
+                            <input type="search" name="q" class="form-control form-control-sm" placeholder="搜索商品 / 单号" autocomplete="off" style="min-width:11rem;max-width:16rem" />
+                        </form>
+                    }
                     <ul class="navbar-nav">
                         @if (IsAuthed)
                         {
@@ -109,7 +125,12 @@
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    @{
+        var echartsCdn = "https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js";
+    }
+    <script src="~/lib/echarts/echarts.min.js" asp-append-version="true"
+            onerror="this.onerror=null;this.crossOrigin='anonymous';this.src='@echartsCdn';"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <script src="~/js/site.js" asp-append-version="true"></script>
 </body>
 </html>

@@ -216,6 +216,9 @@ namespace 进销存demo.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("PaymentTermDays")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Phone")
                         .HasMaxLength(32)
                         .HasColumnType("TEXT");
@@ -230,6 +233,135 @@ namespace 进销存demo.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("进销存demo.Models.Entities.Payable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OrderNo")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Paid")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PurchaseOrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("SupplierId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PurchaseOrderId")
+                        .IsUnique();
+
+                    b.HasIndex("SupplierId");
+
+                    b.ToTable("Payables");
+                });
+
+            modelBuilder.Entity("进销存demo.Models.Entities.PaymentReceipt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Method")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("OrderNo")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("PaidDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ReceivableId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceivableId");
+
+                    b.ToTable("PaymentReceipts");
+                });
+
+            modelBuilder.Entity("进销存demo.Models.Entities.PaymentVoucher", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Method")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("OrderNo")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("PaidDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PayableId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PayableId");
+
+                    b.ToTable("PaymentVouchers");
                 });
 
             modelBuilder.Entity("进销存demo.Models.Entities.Product", b =>
@@ -286,7 +418,13 @@ namespace 进销存demo.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("ShelfLifeDays")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Stock")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("TrackBatch")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Unit")
@@ -306,6 +444,55 @@ namespace 进销存demo.Migrations
                         .HasFilter("\"IsDeleted\" = 0");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("进销存demo.Models.Entities.ProductBatch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("BatchNo")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("InitialQty")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ProductionDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PurchaseOrderItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RemainingQty")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PurchaseOrderItemId");
+
+                    b.HasIndex("ProductId", "BatchNo")
+                        .IsUnique();
+
+                    b.ToTable("ProductBatches");
                 });
 
             modelBuilder.Entity("进销存demo.Models.Entities.ProductCategory", b =>
@@ -370,7 +557,7 @@ namespace 进销存demo.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("SupplierId")
+                    b.Property<int?>("SupplierId")
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("TotalAmount")
@@ -396,8 +583,15 @@ namespace 进销存demo.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ProductId")
+                    b.Property<string>("BatchNo")
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ProductId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("ProductionDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("PurchaseOrderId")
                         .HasColumnType("INTEGER");
@@ -418,6 +612,53 @@ namespace 进销存demo.Migrations
                     b.ToTable("PurchaseOrderItems");
                 });
 
+            modelBuilder.Entity("进销存demo.Models.Entities.Receivable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OrderNo")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Paid")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SaleOrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("SaleOrderId")
+                        .IsUnique();
+
+                    b.ToTable("Receivables");
+                });
+
             modelBuilder.Entity("进销存demo.Models.Entities.SaleOrder", b =>
                 {
                     b.Property<int>("Id")
@@ -430,7 +671,7 @@ namespace 进销存demo.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("CustomerId")
+                    b.Property<int?>("CustomerId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("OrderDate")
@@ -474,7 +715,11 @@ namespace 进销存demo.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ProductId")
+                    b.Property<string>("ConsumedFromBatches")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ProductId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Quantity")
@@ -527,13 +772,16 @@ namespace 进销存demo.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("BatchId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("ChangeType")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("ProductId")
+                    b.Property<int?>("ProductId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Quantity")
@@ -551,6 +799,8 @@ namespace 进销存demo.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
 
                     b.HasIndex("RefOrderNo");
 
@@ -606,7 +856,7 @@ namespace 进销存demo.Migrations
                     b.Property<int>("ActualQty")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ProductId")
+                    b.Property<int?>("ProductId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("StocktakeId")
@@ -651,6 +901,9 @@ namespace 进销存demo.Migrations
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("PaymentTermDays")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(32)
@@ -793,6 +1046,46 @@ namespace 进销存demo.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("进销存demo.Models.Entities.Payable", b =>
+                {
+                    b.HasOne("进销存demo.Models.Entities.PurchaseOrder", "PurchaseOrder")
+                        .WithOne("Payable")
+                        .HasForeignKey("进销存demo.Models.Entities.Payable", "PurchaseOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("进销存demo.Models.Entities.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("PurchaseOrder");
+
+                    b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("进销存demo.Models.Entities.PaymentReceipt", b =>
+                {
+                    b.HasOne("进销存demo.Models.Entities.Receivable", "Receivable")
+                        .WithMany("Receipts")
+                        .HasForeignKey("ReceivableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Receivable");
+                });
+
+            modelBuilder.Entity("进销存demo.Models.Entities.PaymentVoucher", b =>
+                {
+                    b.HasOne("进销存demo.Models.Entities.Payable", "Payable")
+                        .WithMany("Vouchers")
+                        .HasForeignKey("PayableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Payable");
+                });
+
             modelBuilder.Entity("进销存demo.Models.Entities.Product", b =>
                 {
                     b.HasOne("进销存demo.Models.Entities.ProductCategory", "Category")
@@ -803,13 +1096,29 @@ namespace 进销存demo.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("进销存demo.Models.Entities.ProductBatch", b =>
+                {
+                    b.HasOne("进销存demo.Models.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("进销存demo.Models.Entities.PurchaseOrderItem", "PurchaseOrderItem")
+                        .WithMany()
+                        .HasForeignKey("PurchaseOrderItemId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Product");
+
+                    b.Navigation("PurchaseOrderItem");
+                });
+
             modelBuilder.Entity("进销存demo.Models.Entities.PurchaseOrder", b =>
                 {
                     b.HasOne("进销存demo.Models.Entities.Supplier", "Supplier")
                         .WithMany()
                         .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Supplier");
                 });
@@ -819,8 +1128,7 @@ namespace 进销存demo.Migrations
                     b.HasOne("进销存demo.Models.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("进销存demo.Models.Entities.PurchaseOrder", "PurchaseOrder")
                         .WithMany("Items")
@@ -833,13 +1141,30 @@ namespace 进销存demo.Migrations
                     b.Navigation("PurchaseOrder");
                 });
 
+            modelBuilder.Entity("进销存demo.Models.Entities.Receivable", b =>
+                {
+                    b.HasOne("进销存demo.Models.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("进销存demo.Models.Entities.SaleOrder", "SaleOrder")
+                        .WithOne("Receivable")
+                        .HasForeignKey("进销存demo.Models.Entities.Receivable", "SaleOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("SaleOrder");
+                });
+
             modelBuilder.Entity("进销存demo.Models.Entities.SaleOrder", b =>
                 {
                     b.HasOne("进销存demo.Models.Entities.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Customer");
                 });
@@ -849,8 +1174,7 @@ namespace 进销存demo.Migrations
                     b.HasOne("进销存demo.Models.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("进销存demo.Models.Entities.SaleOrder", "SaleOrder")
                         .WithMany("Items")
@@ -865,11 +1189,17 @@ namespace 进销存demo.Migrations
 
             modelBuilder.Entity("进销存demo.Models.Entities.StockTransaction", b =>
                 {
+                    b.HasOne("进销存demo.Models.Entities.ProductBatch", "Batch")
+                        .WithMany()
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("进销存demo.Models.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Batch");
 
                     b.Navigation("Product");
                 });
@@ -879,8 +1209,7 @@ namespace 进销存demo.Migrations
                     b.HasOne("进销存demo.Models.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("进销存demo.Models.Entities.Stocktake", "Stocktake")
                         .WithMany("Items")
@@ -893,14 +1222,28 @@ namespace 进销存demo.Migrations
                     b.Navigation("Stocktake");
                 });
 
+            modelBuilder.Entity("进销存demo.Models.Entities.Payable", b =>
+                {
+                    b.Navigation("Vouchers");
+                });
+
             modelBuilder.Entity("进销存demo.Models.Entities.PurchaseOrder", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("Payable");
+                });
+
+            modelBuilder.Entity("进销存demo.Models.Entities.Receivable", b =>
+                {
+                    b.Navigation("Receipts");
                 });
 
             modelBuilder.Entity("进销存demo.Models.Entities.SaleOrder", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("Receivable");
                 });
 
             modelBuilder.Entity("进销存demo.Models.Entities.Stocktake", b =>

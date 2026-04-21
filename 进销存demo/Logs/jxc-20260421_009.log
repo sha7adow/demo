@@ -1,0 +1,68 @@
+2026-04-21 10:02:34.596 [WRN] Microsoft.EntityFrameworkCore.Model.Validation Entity 'Supplier' has a global query filter defined and is the required end of a relationship with the entity 'Payable'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-04-21 10:02:34.602 [WRN] Microsoft.EntityFrameworkCore.Model.Validation Entity 'Product' has a global query filter defined and is the required end of a relationship with the entity 'ProductBatch'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-04-21 10:02:34.602 [WRN] Microsoft.EntityFrameworkCore.Model.Validation Entity 'Customer' has a global query filter defined and is the required end of a relationship with the entity 'Receivable'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-04-21 10:02:35.575 [INF] Microsoft.Hosting.Lifetime Now listening on: http://127.0.0.1:5017
+2026-04-21 10:02:35.576 [INF] Microsoft.Hosting.Lifetime Application started. Press Ctrl+C to shut down.
+2026-04-21 10:02:35.576 [INF] Microsoft.Hosting.Lifetime Hosting environment: Development
+2026-04-21 10:02:35.576 [INF] Microsoft.Hosting.Lifetime Content root path: d:\C#\C#基础语法\进销存demo\进销存demo
+2026-04-21 10:02:35.710 [WRN] Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware Failed to determine the https port for redirect.
+2026-04-21 10:02:35.785 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Account/Login responded 200 in 72.0350 ms
+2026-04-21 10:02:35.807 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Account/Login responded 200 in 6.5778 ms
+2026-04-21 10:02:35.931 [INF] 进销存demo.Controllers.AccountController 用户 admin 登录成功
+2026-04-21 10:02:35.931 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Account/Login responded 302 in 101.7073 ms
+2026-04-21 10:02:36.085 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET / responded 200 in 129.0029 ms
+2026-04-21 10:02:36.159 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Products/Create responded 200 in 48.2866 ms
+2026-04-21 10:02:36.198 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Products/Create responded 302 in 26.1640 ms
+2026-04-21 10:02:36.255 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Products responded 200 in 37.0676 ms
+2026-04-21 10:02:36.282 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Home/Index responded 200 in 4.1780 ms
+2026-04-21 10:02:36.312 [INF] 进销存demo.Controllers.AccountController 用户 admin 注销
+2026-04-21 10:02:36.313 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Account/Logout responded 302 in 3.9257 ms
+2026-04-21 10:02:36.342 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Account/Login responded 200 in 1.8767 ms
+2026-04-21 10:02:36.356 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Account/Login responded 200 in 1.0211 ms
+2026-04-21 10:02:36.398 [INF] 进销存demo.Controllers.AccountController 用户 purchaser 登录成功
+2026-04-21 10:02:36.398 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Account/Login responded 302 in 40.7396 ms
+2026-04-21 10:02:36.422 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET / responded 200 in 3.5061 ms
+2026-04-21 10:02:36.463 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Purchases/Create responded 200 in 28.5834 ms
+2026-04-21 10:02:36.671 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Purchases/Create responded 302 in 174.0686 ms
+2026-04-21 10:02:36.703 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Purchases/Details/1 responded 200 in 30.9418 ms
+2026-04-21 10:02:36.718 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Purchases/Details/1 responded 200 in 3.7154 ms
+2026-04-21 10:02:36.797 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Purchases/Confirm/1 responded 302 in 66.8275 ms
+2026-04-21 10:02:36.811 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Purchases/Details/1 responded 200 in 2.8605 ms
+2026-04-21 10:02:36.826 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Purchases/Details/1 responded 200 in 2.5338 ms
+2026-04-21 10:02:36.855 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Purchases/Return/1 responded 302 in 15.9897 ms
+2026-04-21 10:02:36.859 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Purchases/Details/1 responded 200 in 2.2352 ms
+2026-04-21 10:02:36.865 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Home/Index responded 200 in 4.1954 ms
+2026-04-21 10:02:36.886 [INF] 进销存demo.Controllers.AccountController 用户 purchaser 注销
+2026-04-21 10:02:36.886 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Account/Logout responded 302 in 0.8941 ms
+2026-04-21 10:02:36.902 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Account/Login responded 200 in 2.2564 ms
+2026-04-21 10:02:36.916 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Account/Login responded 200 in 1.0941 ms
+2026-04-21 10:02:36.972 [INF] 进销存demo.Controllers.AccountController 用户 warehouse 登录成功
+2026-04-21 10:02:36.973 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Account/Login responded 302 in 42.1661 ms
+2026-04-21 10:02:36.995 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET / responded 200 in 4.2628 ms
+2026-04-21 10:02:37.034 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Stocktakes responded 200 in 12.2254 ms
+2026-04-21 10:02:37.096 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Stocktakes/Create responded 302 in 43.2386 ms
+2026-04-21 10:02:37.135 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Stocktakes/Details/1 responded 200 in 21.5038 ms
+2026-04-21 10:02:37.164 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Stocktakes/Details/1 responded 200 in 4.0924 ms
+2026-04-21 10:02:37.190 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Stocktakes/Save/1 responded 302 in 14.8646 ms
+2026-04-21 10:02:37.210 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Stocktakes/Details/1 responded 200 in 3.4054 ms
+2026-04-21 10:02:37.225 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Stocktakes/Details/1 responded 200 in 3.3589 ms
+2026-04-21 10:02:37.253 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Stocktakes/Confirm/1 responded 302 in 15.6947 ms
+2026-04-21 10:02:37.271 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Stocktakes/Details/1 responded 200 in 3.6241 ms
+2026-04-21 10:02:37.303 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Home/Index responded 200 in 4.9272 ms
+2026-04-21 10:02:37.305 [INF] 进销存demo.Controllers.AccountController 用户 warehouse 注销
+2026-04-21 10:02:37.305 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Account/Logout responded 302 in 0.7637 ms
+2026-04-21 10:02:37.329 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Account/Login responded 200 in 1.2571 ms
+2026-04-21 10:02:37.345 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Account/Login responded 200 in 1.2196 ms
+2026-04-21 10:02:37.400 [INF] 进销存demo.Controllers.AccountController 用户 salesperson 登录成功
+2026-04-21 10:02:37.400 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Account/Login responded 302 in 41.1365 ms
+2026-04-21 10:02:37.406 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET / responded 200 in 4.3418 ms
+2026-04-21 10:02:37.445 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Sales/Create responded 200 in 25.0938 ms
+2026-04-21 10:02:37.515 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Sales/Create responded 302 in 47.2847 ms
+2026-04-21 10:02:37.552 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Sales/Details/1 responded 200 in 23.5247 ms
+2026-04-21 10:02:37.557 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Sales/Details/1 responded 200 in 2.7625 ms
+2026-04-21 10:02:37.635 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Sales/Confirm/1 responded 302 in 59.0757 ms
+2026-04-21 10:02:37.657 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Sales/Details/1 responded 200 in 3.4126 ms
+2026-04-21 10:02:37.688 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Sales/Details/1 responded 200 in 2.7674 ms
+2026-04-21 10:02:37.715 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP POST /Sales/Return/1 responded 302 in 14.9966 ms
+2026-04-21 10:02:37.734 [INF] Serilog.AspNetCore.RequestLoggingMiddleware HTTP GET /Sales/Details/1 responded 200 in 2.7620 ms
+2026-04-21 10:04:07.740 [INF]  =========== 进销存demo 启动 ===========

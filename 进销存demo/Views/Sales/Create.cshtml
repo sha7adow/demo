@@ -11,15 +11,15 @@
     <div asp-validation-summary="All" class="text-danger"></div>
 
     <div class="row g-3">
-        <div class="col-md-3">
+        <div class="col-md-6">
             <label asp-for="OrderNo" class="form-label"></label>
             <input asp-for="OrderNo" class="form-control" />
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6">
             <label asp-for="OrderDate" class="form-label"></label>
             <input asp-for="OrderDate" class="form-control" type="date" />
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6">
             <label asp-for="CustomerId" class="form-label"></label>
             <select asp-for="CustomerId" class="form-select">
                 <option value="0">-- 请选择 --</option>
@@ -29,7 +29,7 @@
                 }
             </select>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6">
             <label asp-for="Remark" class="form-label"></label>
             <input asp-for="Remark" class="form-control" />
         </div>
@@ -39,7 +39,8 @@
     <h5>明细
         <button type="button" class="btn btn-sm btn-outline-primary float-end" id="btnAdd">+ 添加一行</button>
     </h5>
-    <table class="table table-sm align-middle" id="itemsTable">
+    <div class="table-responsive">
+    <table class="table table-sm align-middle jxc-table-wide" id="itemsTable">
         <thead class="table-light">
             <tr>
                 <th style="width:40%">商品</th>
@@ -54,6 +55,7 @@
             <tr><th colspan="3" class="text-end">合计</th><th class="text-end" id="grandTotal">0.00</th><th></th></tr>
         </tfoot>
     </table>
+    </div>
 
     <div>
         <button type="submit" class="btn btn-primary">保存草稿</button>

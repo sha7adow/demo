@@ -49,7 +49,8 @@
     </div>
 </form>
 
-<table class="table table-sm table-hover bg-white align-middle">
+<div class="table-responsive">
+<table class="table table-sm table-hover bg-white align-middle jxc-table-wide">
     <thead class="table-light">
         <tr>
             <th>时间</th><th>商品</th><th>类型</th>
@@ -85,5 +86,6 @@
     @if (!Model.Any()) { <tr><td colspan="7" class="text-center text-muted py-4">暂无数据</td></tr> }
     </tbody>
 </table>
+</div>
 
 @await Html.PartialAsync("_Pager")
